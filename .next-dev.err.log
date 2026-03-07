@@ -1,0 +1,134 @@
+ ⨯ ./src/server/db.ts:2:1
+Module not found: Can't resolve '@prisma/adapter-pg'
+[0m [90m 1 |[39m [36mimport[39m { env } [36mfrom[39m [32m"~/env"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m { [33mPrismaPg[39m } [36mfrom[39m [32m"@prisma/adapter-pg"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mimport[39m { [33mPrismaClient[39m } [36mfrom[39m [32m"../../generated/prisma"[39m[33m;[39m
+ [90m 4 |[39m
+ [90m 5 |[39m [36mconst[39m createPrismaClient [33m=[39m () [33m=>[39m {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/server/db.ts
+    ./src/server/api/trpc.ts
+    ./src/trpc/server.ts
+    ./src/app/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/server/db.ts:2:1
+Module not found: Can't resolve '@prisma/adapter-pg'
+[0m [90m 1 |[39m [36mimport[39m { env } [36mfrom[39m [32m"~/env"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m { [33mPrismaPg[39m } [36mfrom[39m [32m"@prisma/adapter-pg"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mimport[39m { [33mPrismaClient[39m } [36mfrom[39m [32m"../../generated/prisma"[39m[33m;[39m
+ [90m 4 |[39m
+ [90m 5 |[39m [36mconst[39m createPrismaClient [33m=[39m () [33m=>[39m {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/server/db.ts
+    ./src/server/api/trpc.ts
+    ./src/trpc/server.ts
+    ./src/app/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./node_modules/@prisma/adapter-pg/dist/index.mjs:3:1
+Module not found: Can't resolve 'pg'
+[0m [90m 1 |[39m [90m// src/pg.ts[39m
+ [90m 2 |[39m [36mimport[39m { [33mDebug[39m[33m,[39m [33mDriverAdapterError[39m } [36mfrom[39m [32m"@prisma/driver-adapter-utils"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m pg2 [36mfrom[39m [32m"pg"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m
+ [90m 5 |[39m [90m// package.json[39m
+ [90m 6 |[39m [36mvar[39m name [33m=[39m [32m"@prisma/adapter-pg"[39m[33m;[39m[0m
+
+
+
+Import trace:
+  Server Component:
+    ./node_modules/@prisma/adapter-pg/dist/index.mjs
+    ./src/server/db.ts
+    ./src/server/api/trpc.ts
+    ./src/trpc/server.ts
+    ./src/app/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./node_modules/@prisma/adapter-pg/dist/index.mjs:3:1
+Module not found: Can't resolve 'pg'
+[0m [90m 1 |[39m [90m// src/pg.ts[39m
+ [90m 2 |[39m [36mimport[39m { [33mDebug[39m[33m,[39m [33mDriverAdapterError[39m } [36mfrom[39m [32m"@prisma/driver-adapter-utils"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m pg2 [36mfrom[39m [32m"pg"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m
+ [90m 5 |[39m [90m// package.json[39m
+ [90m 6 |[39m [36mvar[39m name [33m=[39m [32m"@prisma/adapter-pg"[39m[33m;[39m[0m
+
+
+
+Import trace:
+  Server Component:
+    ./node_modules/@prisma/adapter-pg/dist/index.mjs
+    ./src/server/db.ts
+    ./src/server/api/trpc.ts
+    ./src/trpc/server.ts
+    ./src/app/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./node_modules/@prisma/adapter-pg/dist/index.mjs:13:1
+Module not found: Can't resolve 'pg'
+[0m [90m 11 |[39m [90m// src/conversion.ts[39m
+ [90m 12 |[39m [36mimport[39m { [33mColumnTypeEnum[39m } [36mfrom[39m [32m"@prisma/driver-adapter-utils"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 13 |[39m [36mimport[39m pg [36mfrom[39m [32m"pg"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 14 |[39m [36mimport[39m { parse [36mas[39m parseArray } [36mfrom[39m [32m"postgres-array"[39m[33m;[39m
+ [90m 15 |[39m [36mvar[39m { types } [33m=[39m pg[33m;[39m
+ [90m 16 |[39m [36mvar[39m { builtins[33m:[39m [33mScalarColumnType[39m[33m,[39m getTypeParser } [33m=[39m types[33m;[39m[0m
+
+
+
+Import trace:
+  Server Component:
+    ./node_modules/@prisma/adapter-pg/dist/index.mjs
+    ./src/server/db.ts
+    ./src/server/api/trpc.ts
+    ./src/trpc/server.ts
+    ./src/app/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./node_modules/@prisma/adapter-pg/dist/index.mjs:13:1
+Module not found: Can't resolve 'pg'
+[0m [90m 11 |[39m [90m// src/conversion.ts[39m
+ [90m 12 |[39m [36mimport[39m { [33mColumnTypeEnum[39m } [36mfrom[39m [32m"@prisma/driver-adapter-utils"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 13 |[39m [36mimport[39m pg [36mfrom[39m [32m"pg"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 14 |[39m [36mimport[39m { parse [36mas[39m parseArray } [36mfrom[39m [32m"postgres-array"[39m[33m;[39m
+ [90m 15 |[39m [36mvar[39m { types } [33m=[39m pg[33m;[39m
+ [90m 16 |[39m [36mvar[39m { builtins[33m:[39m [33mScalarColumnType[39m[33m,[39m getTypeParser } [33m=[39m types[33m;[39m[0m
+
+
+
+Import trace:
+  Server Component:
+    ./node_modules/@prisma/adapter-pg/dist/index.mjs
+    ./src/server/db.ts
+    ./src/server/api/trpc.ts
+    ./src/trpc/server.ts
+    ./src/app/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+

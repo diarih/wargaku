@@ -1,0 +1,13 @@
+   ▲ Next.js 15.5.12 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.2:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 3.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 5.9s
+[TRPC] post.hello took 127ms to execute
+ GET / 200 in 7356ms
+ ✓ Compiled in 165ms
+ ✓ Compiled in 1854ms
