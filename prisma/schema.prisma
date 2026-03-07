@@ -54,14 +54,22 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String      @id @default(cuid())
+    username      String      @unique
+    passwordHash  String
+    isActive      Boolean     @default(true)
     name          String?
-    email         String?   @unique
+    email         String?     @unique
     emailVerified DateTime?
     image         String?
+    createdAt     DateTime    @default(now())
+    updatedAt     DateTime    @updatedAt
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    households    Household[] @relation("HouseholdCreatedBy")
+    residents     Resident[]  @relation("ResidentCreatedBy")
+    uploadedFiles FileAsset[] @relation("FileAssetUploadedBy")
 }
 
 model VerificationToken {
@@ -70,4 +78,76 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Household {
+    id             String      @id @default(cuid())
+    noKk           String      @unique
+    kepalaKeluarga String
+    alamat         String
+    rt             String
+    rw             String
+    kelurahan      String
+    kecamatan      String
+    kota           String
+    provinsi       String
+    kodePos        String?
+    statusAktif    Boolean     @default(true)
+    createdAt      DateTime    @default(now())
+    updatedAt      DateTime    @updatedAt
+    createdById    String?
+    createdBy      User?       @relation("HouseholdCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    residents      Resident[]
+    files          FileAsset[]
+
+    @@index([kepalaKeluarga])
+    @@index([kelurahan, kecamatan])
+}
+
+model Resident {
+    id               String      @id @default(cuid())
+    householdId      String
+    nik              String      @unique
+    namaLengkap      String
+    jenisKelamin     String
+    tempatLahir      String?
+    tanggalLahir     DateTime?
+    hubunganDalamKk  String
+    agama            String?
+    pendidikan       String?
+    pekerjaan        String?
+    statusPerkawinan String?
+    statusTinggal    String?
+    phone            String?
+    email            String?
+    photoPath        String?
+    isActive         Boolean     @default(true)
+    createdAt        DateTime    @default(now())
+    updatedAt        DateTime    @updatedAt
+    createdById      String?
+    household        Household   @relation(fields: [householdId], references: [id], onDelete: Cascade)
+    createdBy        User?       @relation("ResidentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    files            FileAsset[]
+
+    @@index([householdId])
+    @@index([namaLengkap])
+}
+
+model FileAsset {
+    id           String     @id @default(cuid())
+    householdId  String?
+    residentId   String?
+    bucket       String
+    path         String     @unique
+    fileName     String
+    mimeType     String
+    size         Int
+    uploadedById String?
+    createdAt    DateTime   @default(now())
+    household    Household? @relation(fields: [householdId], references: [id], onDelete: SetNull)
+    resident     Resident?  @relation(fields: [residentId], references: [id], onDelete: SetNull)
+    uploadedBy   User?      @relation("FileAssetUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+    @@index([householdId])
+    @@index([residentId])
 }

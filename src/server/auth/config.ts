@@ -1,6 +1,8 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { compare } from "bcryptjs";
+import { z } from "zod";
 
 import { db } from "~/server/db";
 
@@ -31,25 +33,68 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+  session: {
+    strategy: "jwt",
+  },
   providers: [
-    DiscordProvider,
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
+    CredentialsProvider({
+      name: "Username and Password",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        const parsed = z
+          .object({
+            username: z.string().min(1),
+            password: z.string().min(1),
+          })
+          .safeParse(credentials);
+
+        if (!parsed.success) {
+          return null;
+        }
+
+        const user = await db.user.findUnique({
+          where: { username: parsed.data.username },
+        });
+
+        if (!user?.isActive) {
+          return null;
+        }
+
+        const isValidPassword = await compare(
+          parsed.data.password,
+          user.passwordHash,
+        );
+
+        if (!isValidPassword) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          name: user.name ?? user.username,
+          email: user.email,
+          image: user.image,
+        };
+      },
+    }),
   ],
   adapter: PrismaAdapter(db),
   callbacks: {
-    session: ({ session, user }) => ({
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.sub = user.id;
+      }
+
+      return token;
+    },
+    session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
+        id: token.sub ?? session.user.id,
       },
     }),
   },
