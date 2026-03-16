@@ -3,8 +3,8 @@ import { format } from "date-fns";
 import {
   AlertTriangle,
   ArrowRight,
-  FileUp,
   Home,
+  PencilLine,
   Search,
   UserPlus,
   Users,
@@ -21,6 +21,7 @@ import {
 } from "~/components/ui/card";
 import { FadeIn } from "~/components/animated/fade-in";
 import { db } from "~/server/db";
+import { getHouseholdCompleteness } from "~/server/households";
 
 const cards = [
   {
@@ -58,30 +59,49 @@ export default async function DashboardPage() {
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
-  const [householdCount, residentCount, newThisMonth, incompleteCount, latest] =
-    await Promise.all([
-      db.household.count(),
-      db.resident.count(),
-      db.resident.count({
-        where: { createdAt: { gte: monthStart } },
-      }),
-      db.resident.count({
-        where: {
-          OR: [{ phone: null }, { pekerjaan: null }, { hubunganDalamKk: "" }],
-        },
-      }),
-      db.resident.findMany({
-        orderBy: { updatedAt: "desc" },
-        take: 5,
-        include: {
-          household: {
-            select: {
-              noKk: true,
-            },
+  const [households, residentCount, newThisMonth, latest] = await Promise.all([
+    db.household.findMany({
+      include: {
+        residents: {
+          select: {
+            id: true,
+            nik: true,
+            namaLengkap: true,
+            jenisKelamin: true,
+            tempatLahir: true,
+            tanggalLahir: true,
+            hubunganDalamKk: true,
+            isKepalaKeluarga: true,
+            agama: true,
+            pendidikan: true,
+            pekerjaan: true,
+            statusPerkawinan: true,
+            statusTinggal: true,
           },
         },
-      }),
-    ]);
+      },
+    }),
+    db.resident.count(),
+    db.resident.count({
+      where: { createdAt: { gte: monthStart } },
+    }),
+    db.resident.findMany({
+      orderBy: { updatedAt: "desc" },
+      take: 5,
+      include: {
+        household: {
+          select: {
+            noKk: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const householdCount = households.length;
+  const incompleteCount = households.filter((household) => {
+    return getHouseholdCompleteness(household).status !== "complete";
+  }).length;
 
   const stats = {
     householdCount,
@@ -149,11 +169,11 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
               <Link
-                href="/dashboard/kk"
+                href="/dashboard/kk/new"
                 className="bg-background hover:bg-muted inline-flex h-auto items-center justify-start gap-3 rounded-lg border px-4 py-4 text-sm font-medium transition-colors"
               >
                 <Users className="size-4" />
-                <span>Lihat data KK</span>
+                <span>Tambah KK baru</span>
               </Link>
               <Link
                 href="/dashboard/pencarian"
@@ -167,14 +187,14 @@ export default async function DashboardPage() {
                 className="bg-background hover:bg-muted inline-flex h-auto items-center justify-start gap-3 rounded-lg border px-4 py-4 text-sm font-medium transition-colors"
               >
                 <UserPlus className="size-4" />
-                <span>Tambah anggota</span>
+                <span>Kelola anggota</span>
               </Link>
               <Link
-                href="/dashboard/pencarian"
+                href="/dashboard/kk"
                 className="bg-background hover:bg-muted inline-flex h-auto items-center justify-start gap-3 rounded-lg border px-4 py-4 text-sm font-medium transition-colors"
               >
-                <FileUp className="size-4" />
-                <span>Upload berkas</span>
+                <PencilLine className="size-4" />
+                <span>Rapikan data draft</span>
               </Link>
             </CardContent>
           </Card>
