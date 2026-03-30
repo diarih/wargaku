@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { HouseholdForm } from "~/app/dashboard/_components/household-form";
 import { db } from "~/server/db";
+import type { HouseholdFormValues } from "~/server/households";
 
 type EditHouseholdPageProps = {
   params: Promise<{ id: string }>;
@@ -17,6 +18,22 @@ export default async function EditHouseholdPage({
     notFound();
   }
 
+  const initialValues: Partial<HouseholdFormValues> = {
+    noKk: household.noKk,
+    alamat: household.alamat,
+    rt: household.rt,
+    rw: household.rw,
+    kelurahan: household.kelurahan,
+    kecamatan: household.kecamatan,
+    kota: household.kota,
+    provinsi: household.provinsi,
+    kodePos: household.kodePos ?? "",
+    statusTempatTinggal:
+      (household.statusTempatTinggal as HouseholdFormValues["statusTempatTinggal"]) ??
+      "",
+    statusAktif: household.statusAktif,
+  };
+
   return (
     <div className="space-y-6">
       <section className="space-y-2">
@@ -31,18 +48,7 @@ export default async function EditHouseholdPage({
       <HouseholdForm
         mode="edit"
         householdId={household.id}
-        initialValues={{
-          noKk: household.noKk,
-          alamat: household.alamat,
-          rt: household.rt,
-          rw: household.rw,
-          kelurahan: household.kelurahan,
-          kecamatan: household.kecamatan,
-          kota: household.kota,
-          provinsi: household.provinsi,
-          kodePos: household.kodePos ?? "",
-          statusAktif: household.statusAktif,
-        }}
+        initialValues={initialValues}
       />
     </div>
   );

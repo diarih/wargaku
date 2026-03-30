@@ -47,7 +47,6 @@ export async function POST(request: Request) {
           pendidikan: normalizeOptional(payload.pendidikan),
           pekerjaan: normalizeOptional(payload.pekerjaan),
           statusPerkawinan: normalizeOptional(payload.statusPerkawinan),
-          statusTinggal: normalizeOptional(payload.statusTinggal),
           phone: normalizeOptional(payload.phone),
           email: normalizeOptional(payload.email),
           isActive: payload.isActive,

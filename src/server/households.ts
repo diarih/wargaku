@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const householdHousingStatusOptions = [
+  "Milik Sendiri",
+  "Kontrak",
+  "Sewa",
+  "Kost",
+  "Menumpang",
+  "Dinas",
+] as const;
+
 export const householdPayloadSchema = z.object({
   noKk: z
     .string()
@@ -21,6 +30,9 @@ export const householdPayloadSchema = z.object({
         .regex(/^\d{5}$/, "Kode pos harus 5 digit."),
     ])
     .optional(),
+  statusTempatTinggal: z
+    .union([z.literal(""), z.enum(householdHousingStatusOptions)])
+    .optional(),
   statusAktif: z.boolean().default(true),
 });
 
@@ -40,7 +52,6 @@ export const residentPayloadSchema = z.object({
   pendidikan: z.string().trim().optional().or(z.literal("")),
   pekerjaan: z.string().trim().optional().or(z.literal("")),
   statusPerkawinan: z.string().trim().optional().or(z.literal("")),
-  statusTinggal: z.string().trim().optional().or(z.literal("")),
   phone: z.string().trim().optional().or(z.literal("")),
   email: z
     .union([
@@ -103,6 +114,7 @@ type HouseholdCompletenessInput = {
   kecamatan: string;
   kota: string;
   provinsi: string;
+  statusTempatTinggal: string | null;
   residents: ResidentCompletenessInput[];
 };
 
@@ -150,6 +162,9 @@ export function getHouseholdCompleteness(
   if (!household.kecamatan?.trim()) missing.push("Kecamatan");
   if (!household.kota?.trim()) missing.push("Kota/Kabupaten");
   if (!household.provinsi?.trim()) missing.push("Provinsi");
+  if (!household.statusTempatTinggal?.trim()) {
+    missing.push("Status tempat tinggal belum diisi");
+  }
 
   const heads = household.residents.filter(
     (resident) => resident.isKepalaKeluarga,

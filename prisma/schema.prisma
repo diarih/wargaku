@@ -92,6 +92,7 @@ model Household {
     kota           String
     provinsi       String
     kodePos        String?
+    statusTempatTinggal String?
     statusAktif    Boolean     @default(true)
     createdAt      DateTime    @default(now())
     updatedAt      DateTime    @updatedAt

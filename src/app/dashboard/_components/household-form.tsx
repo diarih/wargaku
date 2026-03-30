@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
+  householdHousingStatusOptions,
   householdPayloadSchema,
   type HouseholdFormValues,
   type HouseholdPayload,
@@ -34,6 +35,7 @@ const defaultValues: HouseholdFormValues = {
   kota: "",
   provinsi: "",
   kodePos: "",
+  statusTempatTinggal: "",
   statusAktif: true,
 };
 
@@ -186,6 +188,28 @@ export function HouseholdForm({
               </div>
             );
           })}
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="statusTempatTinggal">Status Tempat Tinggal</Label>
+            <select
+              id="statusTempatTinggal"
+              className="border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none focus-visible:ring-3"
+              aria-invalid={!!errors.statusTempatTinggal}
+              {...register("statusTempatTinggal")}
+            >
+              <option value="">Pilih status tempat tinggal</option>
+              {householdHousingStatusOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <p className="text-muted-foreground text-xs">
+              Diisi sekali untuk satu KK. Boleh dikosongkan dulu dan dilengkapi
+              nanti.
+            </p>
+            <FormFieldError message={errors.statusTempatTinggal?.message} />
+          </div>
 
           <label className="bg-secondary/40 flex items-center gap-3 rounded-2xl border p-4 md:col-span-2">
             <input

@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import {
   AlertTriangle,
   ArrowRight,
+  BedDouble,
+  Cake,
   Home,
   PencilLine,
   Search,
@@ -22,6 +24,89 @@ import {
 import { FadeIn } from "~/components/animated/fade-in";
 import { db } from "~/server/db";
 import { getHouseholdCompleteness } from "~/server/households";
+
+const ageBuckets = [
+  { label: "Balita", min: 0, max: 5 },
+  { label: "Anak", min: 6, max: 12 },
+  { label: "Remaja", min: 13, max: 17 },
+  { label: "Dewasa", min: 18, max: 59 },
+  { label: "Lansia", min: 60, max: Infinity },
+] as const;
+
+function getAgeInYears(date: Date | null) {
+  if (!date || Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - date.getFullYear();
+  const monthDiff = today.getMonth() - date.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+    age -= 1;
+  }
+
+  return age >= 0 ? age : null;
+}
+
+function getAgeDistribution(residents: { tanggalLahir: Date | null }[]) {
+  const counts = ageBuckets.map((bucket) => ({ ...bucket, total: 0 }));
+  let unknown = 0;
+
+  for (const resident of residents) {
+    const age = getAgeInYears(resident.tanggalLahir);
+
+    if (age === null) {
+      unknown += 1;
+      continue;
+    }
+
+    const bucket = counts.find((item) => age >= item.min && age <= item.max);
+
+    if (bucket) {
+      bucket.total += 1;
+    } else {
+      unknown += 1;
+    }
+  }
+
+  return { counts, unknown };
+}
+
+function getLivingStatusSummary(residents: { statusTinggal: string | null }[]) {
+  let rent = 0;
+  let nonRent = 0;
+  let unknown = 0;
+
+  for (const resident of residents) {
+    const value = resident.statusTinggal?.trim().toLowerCase();
+
+    if (!value) {
+      unknown += 1;
+      continue;
+    }
+
+    if (
+      value.includes("sewa") ||
+      value.includes("kontrak") ||
+      value.includes("kost")
+    ) {
+      rent += 1;
+    } else {
+      nonRent += 1;
+    }
+  }
+
+  return { rent, nonRent, unknown };
+}
+
+function getPercent(value: number, total: number) {
+  if (total === 0) {
+    return 0;
+  }
+
+  return Math.round((value / total) * 100);
+}
 
 const cards = [
   {
@@ -99,9 +184,12 @@ export default async function DashboardPage() {
   ]);
 
   const householdCount = households.length;
+  const residents = households.flatMap((household) => household.residents);
   const incompleteCount = households.filter((household) => {
     return getHouseholdCompleteness(household).status !== "complete";
   }).length;
+  const ageDistribution = getAgeDistribution(residents);
+  const livingStatus = getLivingStatusSummary(residents);
 
   const stats = {
     householdCount,
@@ -156,6 +244,106 @@ export default async function DashboardPage() {
             </Card>
           </FadeIn>
         ))}
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <FadeIn delay={0.18}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <CardTitle>Distribusi Usia</CardTitle>
+                  <CardDescription>
+                    Sebaran usia warga berdasarkan tanggal lahir yang sudah
+                    terisi.
+                  </CardDescription>
+                </div>
+                <span className="bg-muted/80 inline-flex size-9 items-center justify-center rounded-xl border">
+                  <Cake className="text-primary size-4" />
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {ageDistribution.counts.map((bucket) => (
+                <div key={bucket.label} className="space-y-1">
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="font-medium">{bucket.label}</span>
+                    <span className="text-muted-foreground">
+                      {bucket.total} orang (
+                      {getPercent(bucket.total, residentCount)}%)
+                    </span>
+                  </div>
+                  <div className="bg-muted h-2 rounded-full">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-lime-300"
+                      style={{
+                        width: `${getPercent(bucket.total, residentCount)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex items-center justify-between rounded-xl border border-amber-500/15 bg-amber-500/5 px-4 py-3 text-sm">
+                <span className="font-medium text-amber-900">Belum diisi</span>
+                <span className="text-amber-800">
+                  {ageDistribution.unknown} orang (
+                  {getPercent(ageDistribution.unknown, residentCount)}%)
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </FadeIn>
+
+        <FadeIn delay={0.24}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <CardTitle>Status Tinggal</CardTitle>
+                  <CardDescription>
+                    Ringkasan warga yang tinggal dengan status kontrak atau
+                    sewa.
+                  </CardDescription>
+                </div>
+                <span className="bg-muted/80 inline-flex size-9 items-center justify-center rounded-xl border">
+                  <BedDouble className="text-primary size-4" />
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                {
+                  label: "Kontrak / Sewa",
+                  value: livingStatus.rent,
+                  className: "border-cyan-500/15 bg-cyan-500/5 text-cyan-900",
+                },
+                {
+                  label: "Bukan Sewa",
+                  value: livingStatus.nonRent,
+                  className: "border-lime-500/15 bg-lime-500/5 text-lime-900",
+                },
+                {
+                  label: "Belum diisi",
+                  value: livingStatus.unknown,
+                  className:
+                    "border-amber-500/15 bg-amber-500/5 text-amber-900",
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${item.className}`}
+                >
+                  <span className="font-medium">{item.label}</span>
+                  <span>
+                    {item.value} orang ({getPercent(item.value, residentCount)}
+                    %)
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </FadeIn>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">

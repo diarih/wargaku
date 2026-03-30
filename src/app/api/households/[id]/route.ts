@@ -32,6 +32,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         kota: payload.kota,
         provinsi: payload.provinsi,
         kodePos: normalizeOptional(payload.kodePos),
+        statusTempatTinggal: normalizeOptional(payload.statusTempatTinggal),
         statusAktif: payload.statusAktif,
       },
     });

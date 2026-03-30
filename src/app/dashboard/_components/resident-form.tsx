@@ -38,7 +38,6 @@ const defaultValues: ResidentFormValues = {
   pendidikan: "",
   pekerjaan: "",
   statusPerkawinan: "",
-  statusTinggal: "",
   phone: "",
   email: "",
   isActive: true,
@@ -243,15 +242,6 @@ export function ResidentForm({
               {...register("statusPerkawinan")}
             />
             <FormFieldError message={errors.statusPerkawinan?.message} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="statusTinggal">Status Tinggal</Label>
-            <Input
-              id="statusTinggal"
-              className="h-10"
-              {...register("statusTinggal")}
-            />
-            <FormFieldError message={errors.statusTinggal?.message} />
           </div>
           <label className="bg-secondary/40 flex items-center gap-3 rounded-2xl border p-4">
             <input

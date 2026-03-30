@@ -60,7 +60,6 @@ export default async function EditResidentPage({
           pendidikan: resident.pendidikan ?? "",
           pekerjaan: resident.pekerjaan ?? "",
           statusPerkawinan: resident.statusPerkawinan ?? "",
-          statusTinggal: resident.statusTinggal ?? "",
           phone: resident.phone ?? "",
           email: resident.email ?? "",
           isActive: resident.isActive,

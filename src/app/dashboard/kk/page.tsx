@@ -136,6 +136,10 @@ export default async function HouseholdPage() {
                           {household.kelurahan}, {household.kecamatan},{" "}
                           {household.kota}, {household.provinsi}
                         </p>
+                        <p className="text-muted-foreground text-xs">
+                          Tempat tinggal:{" "}
+                          {household.statusTempatTinggal ?? "Belum diisi"}
+                        </p>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 pt-1">

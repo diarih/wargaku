@@ -26,6 +26,7 @@ describe("household helpers", () => {
         kota: "Bandung",
         provinsi: "Jawa Barat",
         kodePos: "40615",
+        statusTempatTinggal: "Milik Sendiri",
         statusAktif: true,
       }),
     ).toMatchObject({
@@ -86,6 +87,7 @@ describe("household helpers", () => {
         kecamatan: "Cibiru",
         kota: "Bandung",
         provinsi: "Jawa Barat",
+        statusTempatTinggal: null,
         residents: [
           {
             id: "resident-1",

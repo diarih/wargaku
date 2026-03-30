@@ -134,6 +134,10 @@ export default async function HouseholdDetailPage({
                 {household.kelurahan}, {household.kecamatan}, {household.kota},{" "}
                 {household.provinsi}
               </p>
+              <p className="text-muted-foreground text-sm">
+                Status tempat tinggal:{" "}
+                {household.statusTempatTinggal ?? "Belum diisi"}
+              </p>
             </div>
           </div>
 
@@ -377,6 +381,12 @@ export default async function HouseholdDetailPage({
                 <p className="text-muted-foreground text-xs">Kepala keluarga</p>
                 <p className="mt-1 text-sm font-semibold">
                   {head?.namaLengkap ?? "Belum dipilih"}
+                </p>
+              </div>
+              <div className="rounded-2xl border p-4">
+                <p className="text-muted-foreground text-xs">Tempat tinggal</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {household.statusTempatTinggal ?? "Belum diisi"}
                 </p>
               </div>
               <div className="rounded-2xl border p-4">
