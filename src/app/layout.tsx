@@ -9,7 +9,13 @@ import { TRPCReactProvider } from "~/trpc/react";
 export const metadata: Metadata = {
   title: "WargaKu",
   description: "Sistem pendataan warga untuk kartu keluarga dan anggotanya.",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/app-icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 const plusJakartaSans = Plus_Jakarta_Sans({

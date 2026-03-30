@@ -2,6 +2,7 @@ import { ArrowRight, Database, ShieldCheck, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { Badge } from "~/components/ui/badge";
+import { AppLogo } from "~/components/branding/app-logo";
 import {
   Card,
   CardContent,
@@ -48,8 +49,11 @@ export default async function LoginPage() {
         <FadeIn>
           <Card className="border-border/70 bg-background/85 shadow-lg backdrop-blur-sm">
             <CardHeader className="space-y-4 pb-2">
-              <Badge className="w-fit rounded-full" variant="secondary">
-                WargaKu
+              <Badge
+                className="w-fit rounded-full px-3 py-1.5"
+                variant="secondary"
+              >
+                <AppLogo size="sm" priority className="leading-none" />
               </Badge>
               <CardTitle className="text-3xl leading-tight font-semibold tracking-tight md:text-4xl">
                 Pendataan warga yang cepat, rapi, dan ramah petugas.

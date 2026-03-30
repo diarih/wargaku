@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CircleDot, LogOut } from "lucide-react";
 
 import { DashboardNav } from "~/app/dashboard/_components/dashboard-nav";
+import { AppLogo } from "~/components/branding/app-logo";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -27,9 +29,9 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-[radial-gradient(120%_120%_at_100%_0%,oklch(0.97_0.04_185),transparent_45%),linear-gradient(180deg,oklch(0.99_0.01_210),oklch(0.98_0.02_180))]">
       <header className="bg-background/90 sticky top-0 z-10 border-b backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div>
-            <p className="text-sm font-semibold tracking-wide">WargaKu</p>
-            <p className="text-muted-foreground text-xs">
+          <div className="min-w-0">
+            <AppLogo href="/dashboard" size="sm" priority />
+            <p className="text-muted-foreground mt-1 text-xs">
               Sistem pendataan warga
             </p>
           </div>
@@ -71,6 +73,9 @@ export default async function DashboardLayout({
       <div className="mx-auto flex max-w-6xl gap-6 px-4 py-6">
         <aside className="bg-background/80 hidden h-fit min-w-60 rounded-2xl border p-3 md:block">
           <div className="px-2 pb-2">
+            <Link href="/dashboard" className="mb-3 inline-flex items-center">
+              <AppLogo size="sm" />
+            </Link>
             <p className="text-sm font-medium">
               {session.user.name ?? "Admin"}
             </p>
