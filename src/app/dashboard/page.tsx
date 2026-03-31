@@ -73,24 +73,22 @@ function getAgeDistribution(residents: { tanggalLahir: Date | null }[]) {
   return { counts, unknown };
 }
 
-function getLivingStatusSummary(residents: { statusTinggal: string | null }[]) {
+function getLivingStatusSummary(
+  households: { statusTempatTinggal: string | null }[],
+) {
   let rent = 0;
   let nonRent = 0;
   let unknown = 0;
 
-  for (const resident of residents) {
-    const value = resident.statusTinggal?.trim().toLowerCase();
+  for (const household of households) {
+    const value = household.statusTempatTinggal?.trim();
 
     if (!value) {
       unknown += 1;
       continue;
     }
 
-    if (
-      value.includes("sewa") ||
-      value.includes("kontrak") ||
-      value.includes("kost")
-    ) {
+    if (value === "Kontrak" || value === "Sewa" || value === "Kost") {
       rent += 1;
     } else {
       nonRent += 1;
@@ -146,7 +144,17 @@ export default async function DashboardPage() {
 
   const [households, residentCount, newThisMonth, latest] = await Promise.all([
     db.household.findMany({
-      include: {
+      select: {
+        id: true,
+        noKk: true,
+        alamat: true,
+        rt: true,
+        rw: true,
+        kelurahan: true,
+        kecamatan: true,
+        kota: true,
+        provinsi: true,
+        statusTempatTinggal: true,
         residents: {
           select: {
             id: true,
@@ -161,7 +169,6 @@ export default async function DashboardPage() {
             pendidikan: true,
             pekerjaan: true,
             statusPerkawinan: true,
-            statusTinggal: true,
           },
         },
       },
@@ -189,7 +196,7 @@ export default async function DashboardPage() {
     return getHouseholdCompleteness(household).status !== "complete";
   }).length;
   const ageDistribution = getAgeDistribution(residents);
-  const livingStatus = getLivingStatusSummary(residents);
+  const livingStatus = getLivingStatusSummary(households);
 
   const stats = {
     householdCount,
@@ -302,8 +309,7 @@ export default async function DashboardPage() {
                 <div>
                   <CardTitle>Status Tinggal</CardTitle>
                   <CardDescription>
-                    Ringkasan warga yang tinggal dengan status kontrak atau
-                    sewa.
+                    Ringkasan KK yang tinggal dengan status kontrak atau sewa.
                   </CardDescription>
                 </div>
                 <span className="bg-muted/80 inline-flex size-9 items-center justify-center rounded-xl border">
@@ -336,8 +342,7 @@ export default async function DashboardPage() {
                 >
                   <span className="font-medium">{item.label}</span>
                   <span>
-                    {item.value} orang ({getPercent(item.value, residentCount)}
-                    %)
+                    {item.value} KK ({getPercent(item.value, householdCount)}%)
                   </span>
                 </div>
               ))}

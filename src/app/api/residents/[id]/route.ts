@@ -35,6 +35,7 @@ export async function PATCH(request: Request, context: RouteContext) {
           },
           data: {
             isKepalaKeluarga: false,
+            hubunganDalamKk: "",
           },
         });
       }
@@ -48,7 +49,11 @@ export async function PATCH(request: Request, context: RouteContext) {
           jenisKelamin: payload.jenisKelamin,
           tempatLahir: normalizeOptional(payload.tempatLahir),
           tanggalLahir: toDateValue(payload.tanggalLahir),
-          hubunganDalamKk: payload.hubunganDalamKk,
+          hubunganDalamKk: payload.isKepalaKeluarga
+            ? "Kepala Keluarga"
+            : payload.hubunganDalamKk === "Kepala Keluarga"
+              ? ""
+              : payload.hubunganDalamKk,
           isKepalaKeluarga: payload.isKepalaKeluarga,
           agama: normalizeOptional(payload.agama),
           pendidikan: normalizeOptional(payload.pendidikan),

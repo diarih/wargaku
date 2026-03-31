@@ -9,6 +9,49 @@ export const householdHousingStatusOptions = [
   "Dinas",
 ] as const;
 
+export const residentMaritalStatusOptions = [
+  "Belum Kawin",
+  "Kawin",
+  "Cerai Hidup",
+  "Cerai Mati",
+] as const;
+
+export const residentReligionOptions = [
+  "Islam",
+  "Kristen",
+  "Katolik",
+  "Hindu",
+  "Buddha",
+  "Khonghucu",
+  "Lainnya",
+] as const;
+
+export const residentEducationOptions = [
+  "Tidak/Belum Sekolah",
+  "Belum Tamat SD",
+  "SD/Sederajat",
+  "SMP/Sederajat",
+  "SMA/SMK/Sederajat",
+  "Diploma",
+  "S1",
+  "S2",
+  "S3",
+] as const;
+
+export const residentOccupationOptions = [
+  "Belum/Tidak Bekerja",
+  "Pelajar/Mahasiswa",
+  "Mengurus Rumah Tangga",
+  "Karyawan Swasta",
+  "Wiraswasta",
+  "Petani",
+  "Buruh",
+  "PNS",
+  "TNI/Polri",
+  "Pensiunan",
+  "Lainnya",
+] as const;
+
 export const householdPayloadSchema = z.object({
   noKk: z
     .string()
@@ -44,14 +87,20 @@ export const residentPayloadSchema = z.object({
     .regex(/^\d{16}$/, "NIK harus terdiri dari 16 digit."),
   namaLengkap: z.string().trim().min(2, "Nama lengkap minimal 2 karakter."),
   jenisKelamin: z.string().trim().min(1, "Jenis kelamin wajib dipilih."),
-  tempatLahir: z.string().trim().optional().or(z.literal("")),
-  tanggalLahir: z.string().trim().optional().or(z.literal("")),
+  tempatLahir: z.string().trim().min(2, "Tempat lahir wajib diisi."),
+  tanggalLahir: z.string().trim().min(1, "Tanggal lahir wajib diisi."),
   hubunganDalamKk: z.string().trim().min(2, "Hubungan dalam KK wajib dipilih."),
   isKepalaKeluarga: z.boolean().default(false),
-  agama: z.string().trim().optional().or(z.literal("")),
-  pendidikan: z.string().trim().optional().or(z.literal("")),
-  pekerjaan: z.string().trim().optional().or(z.literal("")),
-  statusPerkawinan: z.string().trim().optional().or(z.literal("")),
+  agama: z.union([z.literal(""), z.enum(residentReligionOptions)]).optional(),
+  pendidikan: z
+    .union([z.literal(""), z.enum(residentEducationOptions)])
+    .optional(),
+  pekerjaan: z
+    .union([z.literal(""), z.enum(residentOccupationOptions)])
+    .optional(),
+  statusPerkawinan: z
+    .union([z.literal(""), z.enum(residentMaritalStatusOptions)])
+    .optional(),
   phone: z.string().trim().optional().or(z.literal("")),
   email: z
     .union([
@@ -101,7 +150,6 @@ type ResidentCompletenessInput = {
   pendidikan: string | null;
   pekerjaan: string | null;
   statusPerkawinan: string | null;
-  statusTinggal: string | null;
   isKepalaKeluarga: boolean;
 };
 

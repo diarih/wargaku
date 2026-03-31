@@ -35,6 +35,9 @@ export default async function NewResidentPage({
     notFound();
   }
 
+  const currentHead =
+    household.residents.find((resident) => resident.isKepalaKeluarga) ?? null;
+
   return (
     <div className="space-y-6">
       <section className="bg-background/90 space-y-3 rounded-2xl border p-6 shadow-sm">
@@ -66,6 +69,11 @@ export default async function NewResidentPage({
           mode="create"
           householdId={household.id}
           householdLabel={household.noKk}
+          currentHead={
+            currentHead
+              ? { id: currentHead.id, namaLengkap: currentHead.namaLengkap }
+              : null
+          }
         />
 
         <Card>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle, Plus } from "lucide-react";
+import { AlertTriangle, LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,7 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
+  residentEducationOptions,
   residentPayloadSchema,
+  residentMaritalStatusOptions,
+  residentOccupationOptions,
+  residentReligionOptions,
   type ResidentFormValues,
 } from "~/server/households";
 
@@ -23,6 +27,10 @@ type ResidentFormProps = {
   householdId: string;
   householdLabel: string;
   initialValues?: Partial<ResidentFormValues>;
+  currentHead?: {
+    id: string;
+    namaLengkap: string;
+  } | null;
 };
 
 const defaultValues: ResidentFormValues = {
@@ -64,9 +72,14 @@ export function ResidentForm({
   householdId,
   householdLabel,
   initialValues,
+  currentHead,
 }: ResidentFormProps) {
   const router = useRouter();
   const [submitAction, setSubmitAction] = useState<SubmitAction>("finish");
+  const [pendingValues, setPendingValues] = useState<ResidentFormValues | null>(
+    null,
+  );
+  const [showHeadChangeModal, setShowHeadChangeModal] = useState(false);
   const {
     register,
     handleSubmit,
@@ -84,6 +97,7 @@ export function ResidentForm({
   });
 
   const isHeadOfFamily = watch("isKepalaKeluarga");
+  const hubunganDalamKk = watch("hubunganDalamKk");
 
   useEffect(() => {
     reset({
@@ -96,10 +110,19 @@ export function ResidentForm({
   useEffect(() => {
     if (isHeadOfFamily) {
       setValue("hubunganDalamKk", "Kepala Keluarga", { shouldValidate: true });
+    } else if (hubunganDalamKk === "Kepala Keluarga") {
+      setValue("hubunganDalamKk", "", { shouldValidate: true });
     }
-  }, [isHeadOfFamily, setValue]);
+  }, [hubunganDalamKk, isHeadOfFamily, setValue]);
 
-  const onSubmit = handleSubmit(async (values) => {
+  const saveResident = async (values: ResidentFormValues) => {
+    const normalizedValues = {
+      ...values,
+      hubunganDalamKk: values.isKepalaKeluarga
+        ? "Kepala Keluarga"
+        : values.hubunganDalamKk,
+    };
+
     const endpoint =
       mode === "create" ? "/api/residents" : `/api/residents/${residentId}`;
     const method = mode === "create" ? "POST" : "PATCH";
@@ -107,7 +130,7 @@ export function ResidentForm({
     const response = await fetch(endpoint, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify(normalizedValues),
     });
 
     const payload = (await response.json().catch(() => null)) as {
@@ -140,6 +163,19 @@ export function ResidentForm({
     );
     router.push(payload?.redirectTo ?? `/dashboard/kk/${householdId}`);
     router.refresh();
+  };
+
+  const onSubmit = handleSubmit(async (values) => {
+    const shouldConfirmHeadChange =
+      values.isKepalaKeluarga && !!currentHead && currentHead.id !== residentId;
+
+    if (shouldConfirmHeadChange) {
+      setPendingValues(values);
+      setShowHeadChangeModal(true);
+      return;
+    }
+
+    await saveResident(values);
   });
 
   return (
@@ -195,6 +231,8 @@ export function ResidentForm({
             <Input
               id="tempatLahir"
               className="h-10"
+              aria-invalid={!!errors.tempatLahir}
+              required
               {...register("tempatLahir")}
             />
             <FormFieldError message={errors.tempatLahir?.message} />
@@ -205,6 +243,8 @@ export function ResidentForm({
               id="tanggalLahir"
               type="date"
               className="h-10"
+              aria-invalid={!!errors.tanggalLahir}
+              required
               {...register("tanggalLahir")}
             />
             <FormFieldError message={errors.tanggalLahir?.message} />
@@ -236,11 +276,19 @@ export function ResidentForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="statusPerkawinan">Status Perkawinan</Label>
-            <Input
+            <select
               id="statusPerkawinan"
-              className="h-10"
+              className="border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none focus-visible:ring-3"
+              aria-invalid={!!errors.statusPerkawinan}
               {...register("statusPerkawinan")}
-            />
+            >
+              <option value="">Pilih status perkawinan</option>
+              {residentMaritalStatusOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
             <FormFieldError message={errors.statusPerkawinan?.message} />
           </div>
           <label className="bg-secondary/40 flex items-center gap-3 rounded-2xl border p-4">
@@ -268,9 +316,49 @@ export function ResidentForm({
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           {[
-            { id: "agama", label: "Agama" },
-            { id: "pendidikan", label: "Pendidikan" },
-            { id: "pekerjaan", label: "Pekerjaan" },
+            {
+              id: "agama",
+              label: "Agama",
+              options: residentReligionOptions,
+              placeholder: "Pilih agama",
+            },
+            {
+              id: "pendidikan",
+              label: "Pendidikan",
+              options: residentEducationOptions,
+              placeholder: "Pilih pendidikan",
+            },
+            {
+              id: "pekerjaan",
+              label: "Pekerjaan",
+              options: residentOccupationOptions,
+              placeholder: "Pilih pekerjaan",
+            },
+          ].map((field) => {
+            const name = field.id as keyof ResidentFormValues;
+
+            return (
+              <div key={field.id} className="space-y-2">
+                <Label htmlFor={field.id}>{field.label}</Label>
+                <select
+                  id={field.id}
+                  className="border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none focus-visible:ring-3"
+                  aria-invalid={!!errors[name]}
+                  {...register(name)}
+                >
+                  <option value="">{field.placeholder}</option>
+                  {field.options.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <FormFieldError message={errors[name]?.message} />
+              </div>
+            );
+          })}
+
+          {[
             { id: "phone", label: "Nomor Telepon" },
             { id: "email", label: "Email", type: "email" },
           ].map((field) => {
@@ -353,6 +441,53 @@ export function ResidentForm({
           Kembali
         </Button>
       </div>
+
+      {showHeadChangeModal ? (
+        <div className="bg-background/80 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-background w-full max-w-lg rounded-3xl border p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <span className="inline-flex size-10 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-700">
+                <AlertTriangle className="size-5" />
+              </span>
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold tracking-tight">
+                  Kepala keluarga akan diganti
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  {currentHead?.namaLengkap} saat ini tercatat sebagai kepala
+                  keluarga. Jika dilanjutkan, status kepala keluarga lama akan
+                  dihapus dan hubungan dalam KK-nya dikosongkan agar bisa
+                  disesuaikan lagi.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowHeadChangeModal(false);
+                  setPendingValues(null);
+                }}
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                onClick={async () => {
+                  if (!pendingValues) return;
+                  setShowHeadChangeModal(false);
+                  await saveResident(pendingValues);
+                  setPendingValues(null);
+                }}
+              >
+                Lanjutkan
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </form>
   );
 }
