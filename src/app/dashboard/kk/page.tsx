@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Users } from "lucide-react";
+import { Plus, Search as SearchIcon, Users, X } from "lucide-react";
 
 import { CompletenessBadge } from "~/app/dashboard/_components/completeness-badge";
 import { InitialsAvatar } from "~/app/dashboard/_components/initials-avatar";
@@ -12,12 +12,59 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import { getInitialsAvatarUrl } from "~/lib/avatar";
 import { db } from "~/server/db";
-import { getHouseholdCompleteness } from "~/server/households";
+import {
+  getHouseholdCompleteness,
+  householdHousingStatusOptions,
+} from "~/server/households";
 
-export default async function HouseholdPage() {
+type HouseholdPageProps = {
+  searchParams: Promise<{
+    q?: string;
+    completeness?: "all" | "complete" | "warning" | "critical";
+    active?: "all" | "active" | "inactive";
+    housing?: (typeof householdHousingStatusOptions)[number] | "all";
+  }>;
+};
+
+export default async function HouseholdPage({
+  searchParams,
+}: HouseholdPageProps) {
+  const params = await searchParams;
+  const query = params.q?.trim() ?? "";
+  const completenessFilter = params.completeness ?? "all";
+  const activeFilter = params.active ?? "all";
+  const housingFilter = params.housing ?? "all";
+
   const households = await db.household.findMany({
+    where: {
+      ...(query
+        ? {
+            OR: [
+              { noKk: { contains: query, mode: "insensitive" } },
+              { kepalaKeluarga: { contains: query, mode: "insensitive" } },
+              { alamat: { contains: query, mode: "insensitive" } },
+              { kelurahan: { contains: query, mode: "insensitive" } },
+              { kecamatan: { contains: query, mode: "insensitive" } },
+              {
+                residents: {
+                  some: {
+                    namaLengkap: { contains: query, mode: "insensitive" },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+      ...(activeFilter === "all"
+        ? {}
+        : { statusAktif: activeFilter === "active" }),
+      ...(housingFilter === "all"
+        ? {}
+        : { statusTempatTinggal: housingFilter }),
+    },
     orderBy: { updatedAt: "desc" },
     include: {
       residents: {
@@ -35,7 +82,6 @@ export default async function HouseholdPage() {
           pendidikan: true,
           pekerjaan: true,
           statusPerkawinan: true,
-          statusTinggal: true,
         },
       },
       _count: {
@@ -44,8 +90,19 @@ export default async function HouseholdPage() {
         },
       },
     },
-    take: 50,
+    take: 100,
   });
+
+  const filteredHouseholds = households.filter((household) => {
+    if (completenessFilter === "all") return true;
+    return getHouseholdCompleteness(household).status === completenessFilter;
+  });
+
+  const hasFilters =
+    query.length > 0 ||
+    completenessFilter !== "all" ||
+    activeFilter !== "all" ||
+    housingFilter !== "all";
 
   return (
     <div className="space-y-6">
@@ -70,27 +127,116 @@ export default async function HouseholdPage() {
         </Button>
       </section>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Filter Data KK</CardTitle>
+          <CardDescription>
+            Persempit daftar berdasarkan kata kunci, kelengkapan, status aktif,
+            atau tempat tinggal.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="grid gap-3 lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))_auto]">
+            <div className="relative">
+              <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+              <Input
+                name="q"
+                defaultValue={query}
+                placeholder="Cari No KK, kepala keluarga, alamat, atau nama warga"
+                className="h-10 pl-9"
+              />
+            </div>
+
+            <select
+              name="completeness"
+              defaultValue={completenessFilter}
+              className="border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none focus-visible:ring-3"
+            >
+              <option value="all">Semua kelengkapan</option>
+              <option value="complete">Lengkap</option>
+              <option value="warning">Perlu dilengkapi</option>
+              <option value="critical">Kritis</option>
+            </select>
+
+            <select
+              name="active"
+              defaultValue={activeFilter}
+              className="border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none focus-visible:ring-3"
+            >
+              <option value="all">Semua status</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Nonaktif</option>
+            </select>
+
+            <select
+              name="housing"
+              defaultValue={housingFilter}
+              className="border-input focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none focus-visible:ring-3"
+            >
+              <option value="all">Semua tempat tinggal</option>
+              {householdHousingStatusOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex gap-2">
+              <Button type="submit" variant="default" className="h-10">
+                Terapkan
+              </Button>
+              {hasFilters ? (
+                <Button
+                  nativeButton={false}
+                  type="button"
+                  variant="ghost"
+                  render={<Link href="/dashboard/kk" />}
+                  className="h-10"
+                >
+                  <X className="size-4" />
+                  Reset
+                </Button>
+              ) : null}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
       <section className="grid gap-4">
-        {households.length === 0 ? (
+        {filteredHouseholds.length === 0 ? (
           <Card className="border-dashed">
             <CardHeader>
-              <CardTitle>Belum ada data KK</CardTitle>
+              <CardTitle>
+                {hasFilters
+                  ? "Tidak ada hasil yang cocok"
+                  : "Belum ada data KK"}
+              </CardTitle>
               <CardDescription>
-                Mulai dari membuat data KK baru, lalu tambahkan anggota keluarga
-                satu per satu.
+                {hasFilters
+                  ? "Coba ubah kata kunci atau filter untuk menemukan data yang Anda cari."
+                  : "Mulai dari membuat data KK baru, lalu tambahkan anggota keluarga satu per satu."}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex gap-2">
+              {hasFilters ? (
+                <Button
+                  nativeButton={false}
+                  variant="outline"
+                  render={<Link href="/dashboard/kk" />}
+                >
+                  Reset filter
+                </Button>
+              ) : null}
               <Button
                 nativeButton={false}
                 render={<Link href="/dashboard/kk/new" />}
               >
-                Tambah KK pertama
+                Tambah KK
               </Button>
             </CardContent>
           </Card>
         ) : (
-          households.map((household) => {
+          filteredHouseholds.map((household) => {
             const completeness = getHouseholdCompleteness(household);
             const head = completeness.headOfFamily;
 

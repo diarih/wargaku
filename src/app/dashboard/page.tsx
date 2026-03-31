@@ -6,7 +6,6 @@ import {
   BedDouble,
   Cake,
   Home,
-  PencilLine,
   Search,
   UserPlus,
   Users,
@@ -381,13 +380,6 @@ export default async function DashboardPage() {
               >
                 <UserPlus className="size-4" />
                 <span>Kelola anggota</span>
-              </Link>
-              <Link
-                href="/dashboard/kk"
-                className="bg-background hover:bg-muted inline-flex h-auto items-center justify-start gap-3 rounded-lg border px-4 py-4 text-sm font-medium transition-colors"
-              >
-                <PencilLine className="size-4" />
-                <span>Rapikan data draft</span>
               </Link>
             </CardContent>
           </Card>
