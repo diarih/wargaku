@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Search as SearchIcon, Users, X } from "lucide-react";
+import { Download, Plus, Search as SearchIcon, Users, X } from "lucide-react";
 
 import { CompletenessBadge } from "~/app/dashboard/_components/completeness-badge";
 import { InitialsAvatar } from "~/app/dashboard/_components/initials-avatar";
@@ -26,8 +26,11 @@ type HouseholdPageProps = {
     completeness?: "all" | "complete" | "warning" | "critical";
     active?: "all" | "active" | "inactive";
     housing?: (typeof householdHousingStatusOptions)[number] | "all";
+    page?: string;
   }>;
 };
+
+const PAGE_SIZE = 12;
 
 export default async function HouseholdPage({
   searchParams,
@@ -37,6 +40,7 @@ export default async function HouseholdPage({
   const completenessFilter = params.completeness ?? "all";
   const activeFilter = params.active ?? "all";
   const housingFilter = params.housing ?? "all";
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
 
   const households = await db.household.findMany({
     where: {
@@ -66,7 +70,21 @@ export default async function HouseholdPage({
         : { statusTempatTinggal: housingFilter }),
     },
     orderBy: { updatedAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      noKk: true,
+      kepalaKeluarga: true,
+      alamat: true,
+      rt: true,
+      rw: true,
+      kelurahan: true,
+      kecamatan: true,
+      kota: true,
+      provinsi: true,
+      kodePos: true,
+      phone: true,
+      statusTempatTinggal: true,
+      statusAktif: true,
       residents: {
         orderBy: [{ isKepalaKeluarga: "desc" }, { namaLengkap: "asc" }],
         select: {
@@ -103,6 +121,48 @@ export default async function HouseholdPage({
     completenessFilter !== "all" ||
     activeFilter !== "all" ||
     housingFilter !== "all";
+  const exportParams = new URLSearchParams();
+
+  if (query) exportParams.set("q", query);
+  if (completenessFilter !== "all")
+    exportParams.set("completeness", completenessFilter);
+  if (activeFilter !== "all") exportParams.set("active", activeFilter);
+  if (housingFilter !== "all") exportParams.set("housing", housingFilter);
+
+  const exportHref = `/api/households/export${exportParams.size > 0 ? `?${exportParams.toString()}` : ""}`;
+  const totalItems = filteredHouseholds.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const currentPage =
+    Number.isNaN(requestedPage) || requestedPage < 1
+      ? 1
+      : Math.min(requestedPage, totalPages);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedHouseholds = filteredHouseholds.slice(
+    startIndex,
+    startIndex + PAGE_SIZE,
+  );
+
+  function buildPageHref(page: number) {
+    const pageParams = new URLSearchParams();
+
+    if (query) pageParams.set("q", query);
+    if (completenessFilter !== "all") {
+      pageParams.set("completeness", completenessFilter);
+    }
+    if (activeFilter !== "all") pageParams.set("active", activeFilter);
+    if (housingFilter !== "all") pageParams.set("housing", housingFilter);
+    if (page > 1) pageParams.set("page", String(page));
+
+    return `/dashboard/kk${pageParams.size > 0 ? `?${pageParams.toString()}` : ""}`;
+  }
+
+  const visiblePages = Array.from(
+    { length: totalPages },
+    (_, index) => index + 1,
+  ).filter(
+    (page) =>
+      page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1,
+  );
 
   return (
     <div className="space-y-6">
@@ -117,14 +177,25 @@ export default async function HouseholdPage({
           </p>
         </div>
 
-        <Button
-          nativeButton={false}
-          render={<Link href="/dashboard/kk/new" />}
-          size="lg"
-        >
-          <Plus className="size-4" />
-          Tambah KK
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            nativeButton={false}
+            variant="outline"
+            render={<a href={exportHref} />}
+            size="lg"
+          >
+            <Download className="size-4" />
+            Export CSV
+          </Button>
+          <Button
+            nativeButton={false}
+            render={<Link href="/dashboard/kk/new" />}
+            size="lg"
+          >
+            <Plus className="size-4" />
+            Tambah KK
+          </Button>
+        </div>
       </section>
 
       <Card>
@@ -203,7 +274,7 @@ export default async function HouseholdPage({
       </Card>
 
       <section className="grid gap-4">
-        {filteredHouseholds.length === 0 ? (
+        {paginatedHouseholds.length === 0 ? (
           <Card className="border-dashed">
             <CardHeader>
               <CardTitle>
@@ -236,7 +307,7 @@ export default async function HouseholdPage({
             </CardContent>
           </Card>
         ) : (
-          filteredHouseholds.map((household) => {
+          paginatedHouseholds.map((household) => {
             const completeness = getHouseholdCompleteness(household);
             const head = completeness.headOfFamily;
 
@@ -285,6 +356,9 @@ export default async function HouseholdPage({
                         <p className="text-muted-foreground text-xs">
                           Tempat tinggal:{" "}
                           {household.statusTempatTinggal ?? "Belum diisi"}
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          Telepon KK: {household.phone ?? "Belum diisi"}
                         </p>
                       </div>
 
@@ -340,6 +414,59 @@ export default async function HouseholdPage({
           })
         )}
       </section>
+
+      {totalItems > 0 ? (
+        <section className="bg-background/90 flex flex-col gap-3 rounded-2xl border p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground text-sm">
+            Menampilkan {startIndex + 1}-
+            {Math.min(startIndex + PAGE_SIZE, totalItems)} dari {totalItems}{" "}
+            data KK.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              nativeButton={false}
+              variant="outline"
+              render={<Link href={buildPageHref(currentPage - 1)} />}
+              disabled={currentPage <= 1}
+            >
+              Sebelumnya
+            </Button>
+
+            {visiblePages.map((page, index) => {
+              const previousPage = visiblePages[index - 1];
+              const shouldShowGap = previousPage && page - previousPage > 1;
+
+              return (
+                <div key={page} className="flex items-center gap-2">
+                  {shouldShowGap ? (
+                    <span className="text-muted-foreground px-1 text-sm">
+                      ...
+                    </span>
+                  ) : null}
+                  <Button
+                    nativeButton={false}
+                    variant={page === currentPage ? "default" : "outline"}
+                    render={<Link href={buildPageHref(page)} />}
+                    className="min-w-10"
+                  >
+                    {page}
+                  </Button>
+                </div>
+              );
+            })}
+
+            <Button
+              nativeButton={false}
+              variant="outline"
+              render={<Link href={buildPageHref(currentPage + 1)} />}
+              disabled={currentPage >= totalPages}
+            >
+              Berikutnya
+            </Button>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

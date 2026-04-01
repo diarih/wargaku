@@ -51,8 +51,6 @@ export default async function EditResidentPage({
     statusPerkawinan:
       (resident.statusPerkawinan as ResidentFormValues["statusPerkawinan"]) ??
       "",
-    phone: resident.phone ?? "",
-    email: resident.email ?? "",
     isActive: resident.isActive,
   };
   const completeness = getResidentCompleteness(resident);

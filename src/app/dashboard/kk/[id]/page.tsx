@@ -138,6 +138,9 @@ export default async function HouseholdDetailPage({
                 Status tempat tinggal:{" "}
                 {household.statusTempatTinggal ?? "Belum diisi"}
               </p>
+              <p className="text-muted-foreground text-sm">
+                Telepon KK: {household.phone ?? "Belum diisi"}
+              </p>
             </div>
           </div>
 
@@ -387,6 +390,12 @@ export default async function HouseholdDetailPage({
                 <p className="text-muted-foreground text-xs">Tempat tinggal</p>
                 <p className="mt-1 text-sm font-semibold">
                   {household.statusTempatTinggal ?? "Belum diisi"}
+                </p>
+              </div>
+              <div className="rounded-2xl border p-4">
+                <p className="text-muted-foreground text-xs">Telepon KK</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {household.phone ?? "Belum diisi"}
                 </p>
               </div>
               <div className="rounded-2xl border p-4">

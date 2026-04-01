@@ -82,12 +82,9 @@ describe("POST /api/residents", () => {
           hubunganDalamKk: "Kepala Keluarga",
           isKepalaKeluarga: true,
           agama: "Islam",
-          pendidikan: "SMA",
+          pendidikan: "SMA/SMK/Sederajat",
           pekerjaan: "Wiraswasta",
           statusPerkawinan: "Kawin",
-          statusTinggal: "Tetap",
-          phone: "08123456789",
-          email: "budi@example.com",
           isActive: true,
         }),
       }),
@@ -100,13 +97,14 @@ describe("POST /api/residents", () => {
       },
       data: {
         isKepalaKeluarga: false,
+        hubunganDalamKk: "",
       },
     });
     expect(createMock).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           createdById: "user-1",
-          email: "budi@example.com",
+          hubunganDalamKk: "Kepala Keluarga",
         }),
       }),
     );
@@ -138,6 +136,8 @@ describe("POST /api/residents", () => {
           nik: "3201010101010102",
           namaLengkap: "Budi Santoso",
           jenisKelamin: "Laki-laki",
+          tempatLahir: "Bandung",
+          tanggalLahir: "1990-01-01",
           hubunganDalamKk: "Anak",
           isKepalaKeluarga: false,
           isActive: true,

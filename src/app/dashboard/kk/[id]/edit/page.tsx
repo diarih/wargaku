@@ -53,6 +53,7 @@ export default async function EditHouseholdPage({
     kota: household.kota,
     provinsi: household.provinsi,
     kodePos: household.kodePos ?? "",
+    phone: household.phone ?? "",
     statusTempatTinggal:
       (household.statusTempatTinggal as HouseholdFormValues["statusTempatTinggal"]) ??
       "",

@@ -46,8 +46,6 @@ const defaultValues: ResidentFormValues = {
   pendidikan: "",
   pekerjaan: "",
   statusPerkawinan: "",
-  phone: "",
-  email: "",
   isActive: true,
 };
 
@@ -353,27 +351,6 @@ export function ResidentForm({
                     </option>
                   ))}
                 </select>
-                <FormFieldError message={errors[name]?.message} />
-              </div>
-            );
-          })}
-
-          {[
-            { id: "phone", label: "Nomor Telepon" },
-            { id: "email", label: "Email", type: "email" },
-          ].map((field) => {
-            const name = field.id as keyof ResidentFormValues;
-
-            return (
-              <div key={field.id} className="space-y-2">
-                <Label htmlFor={field.id}>{field.label}</Label>
-                <Input
-                  id={field.id}
-                  type={field.type ?? "text"}
-                  className="h-10"
-                  aria-invalid={!!errors[name]}
-                  {...register(name)}
-                />
                 <FormFieldError message={errors[name]?.message} />
               </div>
             );

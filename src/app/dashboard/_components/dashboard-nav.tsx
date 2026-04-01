@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Users } from "lucide-react";
+import { FileText, Home, Users } from "lucide-react";
 
 import { cn } from "~/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/dashboard/kk", label: "Kartu Keluarga", icon: Users },
-  { href: "/dashboard/pencarian", label: "Pencarian", icon: Search },
+  { href: "/dashboard/dokumen", label: "Dokumen", icon: FileText },
 ] as const;
 
 type DashboardNavProps = {

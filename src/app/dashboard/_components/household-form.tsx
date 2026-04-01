@@ -35,6 +35,7 @@ const defaultValues: HouseholdFormValues = {
   kota: "",
   provinsi: "",
   kodePos: "",
+  phone: "",
   statusTempatTinggal: "",
   statusAktif: true,
 };
@@ -146,6 +147,17 @@ export function HouseholdForm({
               {...register("kodePos")}
             />
             <FormFieldError message={errors.kodePos?.message} />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="phone">Nomor Telepon KK</Label>
+            <Input
+              id="phone"
+              className="h-10"
+              placeholder="Opsional, nomor kontak keluarga"
+              aria-invalid={!!errors.phone}
+              {...register("phone")}
+            />
+            <FormFieldError message={errors.phone?.message} />
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="alamat">Alamat</Label>

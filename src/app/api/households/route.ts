@@ -26,6 +26,7 @@ export async function POST(request: Request) {
         kota: payload.kota,
         provinsi: payload.provinsi,
         kodePos: normalizeOptional(payload.kodePos),
+        phone: normalizeOptional(payload.phone),
         statusTempatTinggal: normalizeOptional(payload.statusTempatTinggal),
         statusAktif: payload.statusAktif,
         createdById: session.user.id,

@@ -59,8 +59,6 @@ export async function PATCH(request: Request, context: RouteContext) {
           pendidikan: normalizeOptional(payload.pendidikan),
           pekerjaan: normalizeOptional(payload.pekerjaan),
           statusPerkawinan: normalizeOptional(payload.statusPerkawinan),
-          phone: normalizeOptional(payload.phone),
-          email: normalizeOptional(payload.email),
           isActive: payload.isActive,
         },
       });

@@ -73,6 +73,12 @@ export const householdPayloadSchema = z.object({
         .regex(/^\d{5}$/, "Kode pos harus 5 digit."),
     ])
     .optional(),
+  phone: z
+    .union([
+      z.literal(""),
+      z.string().trim().min(8, "Nomor telepon minimal 8 karakter."),
+    ])
+    .optional(),
   statusTempatTinggal: z
     .union([z.literal(""), z.enum(householdHousingStatusOptions)])
     .optional(),
@@ -100,13 +106,6 @@ export const residentPayloadSchema = z.object({
     .optional(),
   statusPerkawinan: z
     .union([z.literal(""), z.enum(residentMaritalStatusOptions)])
-    .optional(),
-  phone: z.string().trim().optional().or(z.literal("")),
-  email: z
-    .union([
-      z.literal(""),
-      z.string().trim().email("Format email tidak valid."),
-    ])
     .optional(),
   isActive: z.boolean().default(true),
 });
@@ -162,6 +161,7 @@ type HouseholdCompletenessInput = {
   kecamatan: string;
   kota: string;
   provinsi: string;
+  phone?: string | null;
   statusTempatTinggal: string | null;
   residents: ResidentCompletenessInput[];
 };

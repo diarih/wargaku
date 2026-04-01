@@ -92,6 +92,7 @@ model Household {
     kota           String
     provinsi       String
     kodePos        String?
+    phone          String?
     statusTempatTinggal String?
     statusAktif    Boolean     @default(true)
     createdAt      DateTime    @default(now())
@@ -119,9 +120,6 @@ model Resident {
     pendidikan       String?
     pekerjaan        String?
     statusPerkawinan String?
-    statusTinggal    String?
-    phone            String?
-    email            String?
     photoPath        String?
     isActive         Boolean     @default(true)
     createdAt        DateTime    @default(now())

@@ -5,8 +5,8 @@ import {
   ArrowRight,
   BedDouble,
   Cake,
+  FileText,
   Home,
-  Search,
   UserPlus,
   Users,
   UsersRound,
@@ -368,18 +368,18 @@ export default async function DashboardPage() {
                 <span>Tambah KK baru</span>
               </Link>
               <Link
-                href="/dashboard/pencarian"
-                className="bg-background hover:bg-muted inline-flex h-auto items-center justify-start gap-3 rounded-lg border px-4 py-4 text-sm font-medium transition-colors"
-              >
-                <Search className="size-4" />
-                <span>Cari NIK / No KK</span>
-              </Link>
-              <Link
                 href="/dashboard/kk"
                 className="bg-background hover:bg-muted inline-flex h-auto items-center justify-start gap-3 rounded-lg border px-4 py-4 text-sm font-medium transition-colors"
               >
                 <UserPlus className="size-4" />
                 <span>Kelola anggota</span>
+              </Link>
+              <Link
+                href="/dashboard/dokumen"
+                className="bg-background hover:bg-muted inline-flex h-auto items-center justify-start gap-3 rounded-lg border px-4 py-4 text-sm font-medium transition-colors"
+              >
+                <FileText className="size-4" />
+                <span>Buka dokumen</span>
               </Link>
             </CardContent>
           </Card>
