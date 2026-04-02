@@ -187,7 +187,7 @@ export default async function HouseholdDetailPage({
                 return (
                   <div
                     key={resident.id}
-                    className="bg-muted/30 flex flex-col gap-3 rounded-2xl border p-4 md:flex-row md:items-center md:justify-between"
+                    className="bg-muted/30 flex flex-col gap-3 rounded-2xl border p-4 md:items-center md:justify-between"
                   >
                     <div className="flex items-start gap-3">
                       <InitialsAvatar
