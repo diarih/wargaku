@@ -29,8 +29,7 @@ import {
   getHouseholdCompleteness,
   getResidentCompleteness,
 } from "~/server/households";
-import { supabaseAdmin } from "~/server/supabase";
-import { env } from "~/env";
+import { createSignedDownloadUrl, deleteObject } from "~/server/storage";
 
 type HouseholdDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -62,13 +61,13 @@ export default async function HouseholdDetailPage({
   const head = completeness.headOfFamily;
   const filesWithUrl = await Promise.all(
     household.files.map(async (file) => {
-      const signed = await supabaseAdmin.storage
-        .from(env.SUPABASE_STORAGE_BUCKET)
-        .createSignedUrl(file.path, 60 * 30);
+      const downloadUrl = await createSignedDownloadUrl({
+        key: file.path,
+      }).catch(() => null);
 
       return {
         ...file,
-        downloadUrl: signed.data?.signedUrl ?? null,
+        downloadUrl,
       };
     }),
   );
@@ -94,7 +93,7 @@ export default async function HouseholdDetailPage({
       return;
     }
 
-    await supabaseAdmin.storage.from(file.bucket).remove([file.path]);
+    await deleteObject(file.path);
     await db.fileAsset.delete({ where: { id: fileId } });
     revalidatePath(`/dashboard/kk/${id}`);
   }

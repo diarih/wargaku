@@ -12,13 +12,7 @@ function csvEscape(value: string | number | boolean | null | undefined) {
   return `"${stringValue.replaceAll('"', '""')}"`;
 }
 
-export async function GET(request: Request) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
+async function getHouseholdsExport(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim() ?? "";
   const completenessFilter = searchParams.get("completeness") ?? "all";
@@ -144,3 +138,17 @@ export async function GET(request: Request) {
     },
   });
 }
+
+async function getHouseholdsExportAuthed(
+  request: Request & { auth?: { user?: { id?: string } } | null },
+) {
+  if (!request.auth?.user?.id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  return getHouseholdsExport(request);
+}
+
+export const GET = auth(getHouseholdsExportAuthed) as unknown as (
+  request: Request,
+) => Promise<Response>;
