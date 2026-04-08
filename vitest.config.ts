@@ -1,4 +1,5 @@
 import { loadEnv } from "vite";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +11,7 @@ export default defineConfig(({ mode }) => {
   });
 
   return {
+    plugins: [react()],
     resolve: {
       alias: {
         "~": fileURLToPath(new URL("./src", import.meta.url)),
@@ -18,6 +20,8 @@ export default defineConfig(({ mode }) => {
     test: {
       environment: "jsdom",
       globals: true,
+      fileParallelism: false,
+      maxWorkers: 1,
       setupFiles: ["./vitest.setup.ts"],
       include: ["tests/**/*.test.{ts,tsx}"],
       coverage: {

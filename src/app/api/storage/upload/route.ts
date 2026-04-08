@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { auth } from "~/server/auth";
@@ -74,6 +75,12 @@ async function postUpload(request: Request, userId: string) {
       uploadedById: userId,
     },
   });
+
+  if (safeHouseholdId) {
+    revalidatePath(`/dashboard/kk/${safeHouseholdId}`);
+  }
+
+  revalidatePath("/dashboard/dokumen");
 
   return NextResponse.json({
     id: asset.id,

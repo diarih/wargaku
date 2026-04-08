@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "~/server/auth";
+import { csvEscape } from "~/server/csv";
 import { db } from "~/server/db";
 import {
   getHouseholdCompleteness,
   householdHousingStatusOptions,
 } from "~/server/households";
-
-function csvEscape(value: string | number | boolean | null | undefined) {
-  const stringValue = value == null ? "" : String(value);
-  return `"${stringValue.replaceAll('"', '""')}"`;
-}
 
 async function getHouseholdsExport(request: Request) {
   const { searchParams } = new URL(request.url);

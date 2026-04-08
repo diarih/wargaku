@@ -10,7 +10,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: process.env.CI ? [["html"], ["list"]] : "list",
   use: {
     baseURL,
@@ -19,10 +19,10 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   webServer: {
-    command: `npm run dev -- --port ${port}`,
+    command: `set AUTH_TRUST_HOST=true&& npx next build && npx next start --port ${port}`,
     url: `${baseURL}/login`,
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    timeout: 240000,
   },
   projects: [
     {

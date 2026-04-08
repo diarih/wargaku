@@ -15,6 +15,8 @@ import { Input } from "~/components/ui/input";
 import { db } from "~/server/db";
 import { createSignedDownloadUrl } from "~/server/storage";
 
+export const dynamic = "force-dynamic";
+
 type DocumentsPageProps = {
   searchParams: Promise<{
     q?: string;
