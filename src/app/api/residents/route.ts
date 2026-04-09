@@ -10,13 +10,7 @@ import {
 } from "~/server/households";
 import { syncHouseholdHeadOfFamily } from "~/server/household-head";
 
-export async function POST(request: Request) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
+async function postResident(request: Request, userId: string) {
   try {
     const payload = parseResidentPayload(await request.json());
 
@@ -53,7 +47,7 @@ export async function POST(request: Request) {
           pekerjaan: normalizeOptional(payload.pekerjaan),
           statusPerkawinan: normalizeOptional(payload.statusPerkawinan),
           isActive: payload.isActive,
-          createdById: session.user.id,
+          createdById: userId,
         },
       });
 
@@ -86,3 +80,19 @@ export async function POST(request: Request) {
     );
   }
 }
+
+async function postResidentAuthed(
+  request: Request & { auth?: { user?: { id?: string } } | null },
+) {
+  const userId = request.auth?.user?.id;
+
+  if (!userId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  return postResident(request, userId);
+}
+
+export const POST = auth(postResidentAuthed) as unknown as (
+  request: Request,
+) => Promise<Response>;

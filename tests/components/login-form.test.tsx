@@ -13,6 +13,8 @@ const { pushMock, refreshMock, signInMock, toastSuccessMock, toastErrorMock } =
     toastErrorMock: vi.fn(),
   }));
 
+const assignMock = vi.fn();
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
@@ -38,6 +40,11 @@ describe("LoginForm", () => {
     signInMock.mockReset();
     toastSuccessMock.mockReset();
     toastErrorMock.mockReset();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { assign: assignMock },
+    });
+    assignMock.mockReset();
   });
 
   it("shows an error toast when credentials are rejected", async () => {
@@ -65,7 +72,25 @@ describe("LoginForm", () => {
     });
   });
 
-  it("navigates to the dashboard after a successful login", async () => {
+  it("navigates with window.location when the auth callback returns a url", async () => {
+    signInMock.mockResolvedValue({ ok: true, url: "/dashboard" });
+    const user = userEvent.setup();
+
+    render(createElement(LoginForm));
+
+    await user.type(screen.getByLabelText("Username"), "petugas");
+    await user.type(screen.getByLabelText("Password"), "rahasia123");
+    await user.click(
+      screen.getByRole("button", { name: "Masuk ke Dashboard" }),
+    );
+
+    await waitFor(() => {
+      expect(assignMock).toHaveBeenCalledWith("/dashboard");
+      expect(pushMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it("falls back to router navigation after a successful login without url", async () => {
     signInMock.mockResolvedValue({ ok: true });
     const user = userEvent.setup();
 
@@ -95,5 +120,24 @@ describe("LoginForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Lihat password" }));
     expect(passwordInput).toHaveAttribute("type", "text");
+  });
+
+  it("shows a generic error when auth returns neither success nor error", async () => {
+    signInMock.mockResolvedValue({ ok: false });
+    const user = userEvent.setup();
+
+    render(createElement(LoginForm));
+
+    await user.type(screen.getByLabelText("Username"), "petugas");
+    await user.type(screen.getByLabelText("Password"), "rahasia123");
+    await user.click(
+      screen.getByRole("button", { name: "Masuk ke Dashboard" }),
+    );
+
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith(
+        "Tidak dapat menyelesaikan login. Coba lagi.",
+      );
+    });
   });
 });

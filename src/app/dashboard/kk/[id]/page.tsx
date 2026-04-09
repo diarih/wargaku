@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import {
@@ -12,6 +11,7 @@ import {
 
 import { CompletenessBadge } from "~/app/dashboard/_components/completeness-badge";
 import { DocumentUploader } from "~/app/dashboard/_components/document-uploader";
+import { FileDeleteButton } from "~/app/dashboard/_components/file-delete-button";
 import { InitialsAvatar } from "~/app/dashboard/_components/initials-avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -23,14 +23,12 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { getInitialsAvatarUrl } from "~/lib/avatar";
-import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import {
   getHouseholdCompleteness,
   getResidentCompleteness,
 } from "~/server/households";
-import { supabaseAdmin } from "~/server/supabase";
-import { env } from "~/env";
+import { createSignedDownloadUrl } from "~/server/storage";
 
 type HouseholdDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -62,42 +60,16 @@ export default async function HouseholdDetailPage({
   const head = completeness.headOfFamily;
   const filesWithUrl = await Promise.all(
     household.files.map(async (file) => {
-      const signed = await supabaseAdmin.storage
-        .from(env.SUPABASE_STORAGE_BUCKET)
-        .createSignedUrl(file.path, 60 * 30);
+      const downloadUrl = await createSignedDownloadUrl({
+        key: file.path,
+      }).catch(() => null);
 
       return {
         ...file,
-        downloadUrl: signed.data?.signedUrl ?? null,
+        downloadUrl,
       };
     }),
   );
-
-  async function deleteFileAsset(formData: FormData) {
-    "use server";
-
-    const session = await auth();
-
-    if (!session?.user) {
-      return;
-    }
-
-    const fileId = formData.get("fileId");
-
-    if (typeof fileId !== "string") {
-      return;
-    }
-
-    const file = await db.fileAsset.findUnique({ where: { id: fileId } });
-
-    if (!file) {
-      return;
-    }
-
-    await supabaseAdmin.storage.from(file.bucket).remove([file.path]);
-    await db.fileAsset.delete({ where: { id: fileId } });
-    revalidatePath(`/dashboard/kk/${id}`);
-  }
 
   return (
     <div className="space-y-6">
@@ -187,7 +159,7 @@ export default async function HouseholdDetailPage({
                 return (
                   <div
                     key={resident.id}
-                    className="bg-muted/30 flex flex-col gap-3 rounded-2xl border p-4 md:flex-row md:items-center md:justify-between"
+                    className="bg-muted/30 flex flex-col gap-3 rounded-2xl border p-4 md:items-center md:justify-between"
                   >
                     <div className="flex items-start gap-3">
                       <InitialsAvatar
@@ -347,12 +319,10 @@ export default async function HouseholdDetailPage({
                             Buka dokumen
                           </Button>
                         ) : null}
-                        <form action={deleteFileAsset}>
-                          <input type="hidden" name="fileId" value={file.id} />
-                          <Button type="submit" variant="destructive">
-                            Hapus
-                          </Button>
-                        </form>
+                        <FileDeleteButton
+                          fileId={file.id}
+                          fileName={file.fileName}
+                        />
                       </div>
                     </div>
                   ))}

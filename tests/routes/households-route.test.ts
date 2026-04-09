@@ -1,6 +1,14 @@
 import { Prisma } from "@prisma/client";
 
-const authMock = vi.fn();
+let sessionMock: { user?: { id: string } } | null = null;
+const authMock = vi.fn((arg?: unknown) => {
+  if (typeof arg === "function") {
+    return (request: Request, context?: unknown) =>
+      arg(Object.assign(request, { auth: sessionMock }), context);
+  }
+
+  return Promise.resolve(sessionMock);
+});
 const createMock = vi.fn();
 
 vi.mock("~/server/auth", () => ({
@@ -17,13 +25,12 @@ vi.mock("~/server/db", () => ({
 
 describe("POST /api/households", () => {
   beforeEach(() => {
-    authMock.mockReset();
+    sessionMock = null;
+    authMock.mockClear();
     createMock.mockReset();
   });
 
   it("returns 401 when the request is unauthenticated", async () => {
-    authMock.mockResolvedValue(null);
-
     const { POST } = await import("~/app/api/households/route");
     const response = await POST(
       new Request("http://localhost/api/households", {
@@ -37,7 +44,7 @@ describe("POST /api/households", () => {
   });
 
   it("returns validation errors as 400 responses", async () => {
-    authMock.mockResolvedValue({ user: { id: "user-1" } });
+    sessionMock = { user: { id: "user-1" } };
 
     const { POST } = await import("~/app/api/households/route");
     const response = await POST(
@@ -54,7 +61,7 @@ describe("POST /api/households", () => {
   });
 
   it("returns redirect payloads when the household is created", async () => {
-    authMock.mockResolvedValue({ user: { id: "user-1" } });
+    sessionMock = { user: { id: "user-1" } };
     createMock.mockResolvedValue({ id: "household-1" });
 
     const { POST } = await import("~/app/api/households/route");
@@ -92,7 +99,7 @@ describe("POST /api/households", () => {
   });
 
   it("maps duplicate kk errors to 409 responses", async () => {
-    authMock.mockResolvedValue({ user: { id: "user-1" } });
+    sessionMock = { user: { id: "user-1" } };
     createMock.mockRejectedValue(
       new Prisma.PrismaClientKnownRequestError("Duplicate", {
         code: "P2002",

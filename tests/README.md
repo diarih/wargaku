@@ -3,6 +3,7 @@
 - `npm test` runs the Vitest suite for unit, route, and component tests.
 - `npm run test:coverage` generates a coverage report in `coverage/`.
 - `npm run test:e2e` runs Playwright smoke tests against a local Next dev server.
+- `npm run test:e2e:report` opens the Playwright HTML report after a run.
 
 ## Environment
 
@@ -14,4 +15,6 @@
 
 - `npm run db:seed` to ensure the admin account exists.
 - `npm test` for fast feedback during development.
+- Use readable scenario names so the console output doubles as a feature checklist.
 - `npm run test:e2e` before merging UI or auth flow changes.
+- Open `playwright-report/` when a browser flow fails to inspect the trace, screenshot, and video.
