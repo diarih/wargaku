@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -74,6 +74,7 @@ export function ResidentForm({
 }: ResidentFormProps) {
   const router = useRouter();
   const [submitAction, setSubmitAction] = useState<SubmitAction>("finish");
+  const submitActionRef = useRef<SubmitAction>("finish");
   const [pendingValues, setPendingValues] = useState<ResidentFormValues | null>(
     null,
   );
@@ -141,7 +142,7 @@ export function ResidentForm({
       return;
     }
 
-    if (mode === "create" && submitAction === "addAnother") {
+    if (mode === "create" && submitActionRef.current === "addAnother") {
       toast.success(
         "Anggota keluarga berhasil ditambahkan. Lanjutkan tambah data berikutnya.",
       );
@@ -379,7 +380,10 @@ export function ResidentForm({
           type="submit"
           size="lg"
           disabled={isSubmitting}
-          onClick={() => setSubmitAction("finish")}
+          onClick={() => {
+            submitActionRef.current = "finish";
+            setSubmitAction("finish");
+          }}
         >
           {isSubmitting && submitAction === "finish" ? (
             <LoaderCircle className="size-4 animate-spin" />
@@ -396,7 +400,10 @@ export function ResidentForm({
             variant="outline"
             size="lg"
             disabled={isSubmitting}
-            onClick={() => setSubmitAction("addAnother")}
+            onClick={() => {
+              submitActionRef.current = "addAnother";
+              setSubmitAction("addAnother");
+            }}
           >
             {isSubmitting && submitAction === "addAnother" ? (
               <LoaderCircle className="size-4 animate-spin" />

@@ -12,9 +12,10 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
-import { env } from "~/env";
 import { db } from "~/server/db";
-import { supabaseAdmin } from "~/server/supabase";
+import { createSignedDownloadUrl } from "~/server/storage";
+
+export const dynamic = "force-dynamic";
 
 type DocumentsPageProps = {
   searchParams: Promise<{
@@ -63,13 +64,13 @@ export default async function DocumentsPage({
 
   const filesWithUrl = await Promise.all(
     files.map(async (file) => {
-      const signed = await supabaseAdmin.storage
-        .from(env.SUPABASE_STORAGE_BUCKET)
-        .createSignedUrl(file.path, 60 * 30);
+      const downloadUrl = await createSignedDownloadUrl({
+        key: file.path,
+      }).catch(() => null);
 
       return {
         ...file,
-        downloadUrl: signed.data?.signedUrl ?? null,
+        downloadUrl,
       };
     }),
   );

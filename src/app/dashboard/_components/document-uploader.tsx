@@ -21,6 +21,8 @@ export function DocumentUploader({
   const [isPending, startTransition] = useTransition();
   const [fileName, setFileName] = useState<string>("");
 
+  const fileSize = inputRef.current?.files?.[0]?.size;
+
   const handleUpload = () => {
     const file = inputRef.current?.files?.[0];
 
@@ -55,7 +57,7 @@ export function DocumentUploader({
         return;
       }
 
-      toast.success("Berkas berhasil diunggah.");
+      toast.success(`Berkas ${file.name} berhasil diunggah.`);
       setFileName("");
 
       if (inputRef.current) {
@@ -68,15 +70,25 @@ export function DocumentUploader({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <label className="bg-background hover:bg-muted flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm">
+      <label
+        className={`bg-background flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
+          isPending
+            ? "cursor-not-allowed opacity-70"
+            : "hover:bg-muted cursor-pointer"
+        }`}
+      >
         <Upload className="text-primary size-4" />
         <span className="truncate">
           {fileName || "Pilih dokumen (maks. 5MB)"}
+          {fileName && fileSize
+            ? ` - ${(fileSize / 1024 / 1024).toFixed(2)} MB`
+            : ""}
         </span>
         <input
           ref={inputRef}
           type="file"
           className="hidden"
+          disabled={isPending}
           onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")}
         />
       </label>
@@ -89,6 +101,12 @@ export function DocumentUploader({
         )}
         {isPending ? "Mengunggah..." : "Upload berkas"}
       </Button>
+
+      <p aria-live="polite" className="text-muted-foreground text-xs">
+        {isPending
+          ? "Sedang mengunggah berkas ke penyimpanan..."
+          : "Format umum seperti JPG, PNG, dan PDF didukung."}
+      </p>
     </div>
   );
 }

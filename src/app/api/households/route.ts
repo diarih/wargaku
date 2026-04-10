@@ -5,13 +5,7 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { parseHouseholdPayload, normalizeOptional } from "~/server/households";
 
-export async function POST(request: Request) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
+async function postHousehold(request: Request, userId: string) {
   try {
     const payload = parseHouseholdPayload(await request.json());
     const household = await db.household.create({
@@ -29,7 +23,7 @@ export async function POST(request: Request) {
         phone: normalizeOptional(payload.phone),
         statusTempatTinggal: normalizeOptional(payload.statusTempatTinggal),
         statusAktif: payload.statusAktif,
-        createdById: session.user.id,
+        createdById: userId,
       },
       select: { id: true },
     });
@@ -59,3 +53,19 @@ export async function POST(request: Request) {
     );
   }
 }
+
+async function postHouseholdAuthed(
+  request: Request & { auth?: { user?: { id?: string } } | null },
+) {
+  const userId = request.auth?.user?.id;
+
+  if (!userId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  return postHousehold(request, userId);
+}
+
+export const POST = auth(postHouseholdAuthed) as unknown as (
+  request: Request,
+) => Promise<Response>;

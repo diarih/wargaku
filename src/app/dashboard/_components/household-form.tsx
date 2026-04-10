@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -25,7 +25,7 @@ type HouseholdFormProps = {
   initialValues?: Partial<HouseholdPayload>;
 };
 
-const defaultValues: HouseholdFormValues = {
+const baseDefaultValues: HouseholdFormValues = {
   noKk: "",
   alamat: "",
   rt: "",
@@ -40,11 +40,31 @@ const defaultValues: HouseholdFormValues = {
   statusAktif: true,
 };
 
+const createDefaultValues: HouseholdFormValues = {
+  ...baseDefaultValues,
+  rt: "03",
+  rw: "06",
+  kelurahan: "Curug",
+  kecamatan: "Gunung Sindur",
+  kota: "kab Bogor",
+  provinsi: "Jawa Barat",
+  kodePos: "16340",
+  statusTempatTinggal: "Milik Sendiri",
+};
+
 export function HouseholdForm({
   mode,
   householdId,
   initialValues,
 }: HouseholdFormProps) {
+  const resolvedDefaultValues = useMemo(
+    () => ({
+      ...(mode === "create" ? createDefaultValues : baseDefaultValues),
+      ...initialValues,
+    }),
+    [initialValues, mode],
+  );
+
   const router = useRouter();
   const {
     register,
@@ -53,18 +73,12 @@ export function HouseholdForm({
     formState: { errors, isSubmitting },
   } = useForm<HouseholdFormValues>({
     resolver: zodResolver(householdPayloadSchema),
-    defaultValues: {
-      ...defaultValues,
-      ...initialValues,
-    },
+    defaultValues: resolvedDefaultValues,
   });
 
   useEffect(() => {
-    reset({
-      ...defaultValues,
-      ...initialValues,
-    });
-  }, [initialValues, reset]);
+    reset(resolvedDefaultValues);
+  }, [reset, resolvedDefaultValues]);
 
   const onSubmit = handleSubmit(async (values) => {
     const endpoint =

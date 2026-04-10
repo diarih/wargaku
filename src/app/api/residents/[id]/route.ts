@@ -14,13 +14,7 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function PATCH(request: Request, context: RouteContext) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
+async function patchResident(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
     const payload = parseResidentPayload(await request.json());
@@ -92,3 +86,20 @@ export async function PATCH(request: Request, context: RouteContext) {
     );
   }
 }
+
+async function patchResidentAuthed(
+  request: Request & { auth?: { user?: { id?: string } } | null },
+  context: { params?: Record<string, string | string[]> },
+) {
+  if (!request.auth?.user?.id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  return patchResident(request, {
+    params: Promise.resolve({ id: String(context.params?.id ?? "") }),
+  });
+}
+
+export const PATCH = auth(
+  patchResidentAuthed,
+) as unknown as typeof patchResident;

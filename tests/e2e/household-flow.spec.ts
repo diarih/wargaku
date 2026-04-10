@@ -1,20 +1,47 @@
 import { expect, test } from "@playwright/test";
 
-import { loginAsAdmin, makeUniqueDigits } from "./helpers";
+import {
+  createHouseholdAndHead,
+  loginAsAdmin,
+  makeUniqueDigits,
+} from "./helpers";
 
 test.describe("household smoke flow", () => {
   test("admin can create and find a household", async ({ page }) => {
+    await loginAsAdmin(page);
+    const { noKk } = await createHouseholdAndHead(page);
+
+    await expect(
+      page.getByRole("heading", { name: `KK ${noKk}` }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Budi Santoso", { exact: true }).first(),
+    ).toBeVisible();
+
+    await page.goto(`/dashboard/kk?q=${noKk}`);
+    const householdCard = page
+      .locator('[data-slot="card"]')
+      .filter({ has: page.getByText(`No. KK ${noKk}`) })
+      .first();
+
+    await expect(householdCard.getByText(`No. KK ${noKk}`)).toBeVisible();
+    await householdCard.getByRole("button", { name: "Lihat detail" }).click();
+    await expect(
+      page.getByRole("heading", { name: `KK ${noKk}` }),
+    ).toBeVisible();
+  });
+
+  test("admin can create an incomplete resident and see kelengkapan warning", async ({
+    page,
+  }) => {
     const noKk = makeUniqueDigits();
-    const nik = makeUniqueDigits(Date.now() + 55_555);
 
     await loginAsAdmin(page);
-
     await page.goto("/dashboard/kk/new");
     await page.getByLabel("Nomor KK").fill(noKk);
     await page.getByLabel("RT").fill("01");
     await page.getByLabel("RW").fill("02");
-    await page.getByLabel("Kode Pos").fill("40615");
-    await page.getByLabel("Alamat").fill("Jalan Melati No. 17");
+    await page.getByLabel("Alamat").fill("Jalan Nusa Indah No. 5");
     await page.getByLabel("Kelurahan").fill("Cibiru");
     await page.getByLabel("Kecamatan").fill("Cibiru");
     await page.getByLabel("Kota / Kabupaten").fill("Bandung");
@@ -23,39 +50,81 @@ test.describe("household smoke flow", () => {
       .getByRole("button", { name: "Simpan & lanjut tambah anggota" })
       .click();
 
-    await page.waitForURL(/\/dashboard\/kk\/.*\/warga\/new\?onboarding=1$/);
-    await expect(
-      page.getByText(
-        "Data KK sudah tersimpan. Lanjutkan dengan menambahkan anggota keluarga pertama.",
-      ),
-    ).toBeVisible();
-
-    await page.getByLabel("Nama Lengkap").fill("Budi Santoso");
-    await page.getByLabel("NIK").fill(nik);
-    await page.getByLabel("Jenis Kelamin").selectOption("Laki-laki");
+    await expect(page).toHaveURL(
+      /\/dashboard\/kk\/.*\/warga\/new\?onboarding=1$/,
+    );
+    await page.getByLabel("Nama Lengkap").fill("Ani");
+    await page.getByLabel("NIK").fill(makeUniqueDigits(Date.now() + 33333));
+    await page.getByLabel("Jenis Kelamin").selectOption("Perempuan");
     await page.getByLabel("Tempat Lahir").fill("Bandung");
-    await page.getByLabel("Tanggal Lahir").fill("1990-01-01");
-    await page.getByLabel("Status Perkawinan").fill("Kawin");
-    await page.getByLabel("Status Tinggal").fill("Tetap");
-    await page.getByText("Jadikan kepala keluarga").click();
-    await page.getByLabel("Agama").fill("Islam");
-    await page.getByLabel("Pendidikan").fill("SMA");
-    await page.getByLabel("Pekerjaan").fill("Wiraswasta");
+    await page.getByLabel("Tanggal Lahir").fill("2000-01-01");
+    await page.getByLabel("Hubungan Dalam KK").selectOption("Anak");
     await page.getByRole("button", { name: "Simpan & selesai" }).click();
 
-    await page.waitForURL(/\/dashboard\/kk\/[^/]+$/);
+    await expect(page).toHaveURL(/\/dashboard\/kk\/[^/]+$/);
+    await expect(page.getByText("Kelengkapan Data")).toBeVisible();
+    await expect(page.getByText(/perlu dilengkapi/i).first()).toBeVisible();
+    await expect(
+      page.getByText(/status tempat tinggal belum diisi/i),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/kepala keluarga belum dipilih/i).first(),
+    ).toBeVisible();
+  });
+
+  test("admin can upload and delete a household document", async ({ page }) => {
+    await loginAsAdmin(page);
+    const { noKk } = await createHouseholdAndHead(page);
+    const uniqueFileName = `kk-scan-${noKk.slice(-6)}.pdf`;
+    const uniqueSearchTerm = `kk-scan-${noKk.slice(-6)}`;
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: uniqueFileName,
+      mimeType: "application/pdf",
+      buffer: Buffer.from("dokumen-kk"),
+    });
+    await page.getByRole("button", { name: "Upload berkas" }).click();
+    await expect(
+      page.getByText(`Berkas ${uniqueFileName} berhasil diunggah.`),
+    ).toBeVisible();
+    await page.reload();
+
+    const detailDocumentCard = page
+      .locator('[data-slot="card"]')
+      .filter({ has: page.getByText("Dokumen KK") })
+      .first();
+
+    await expect(detailDocumentCard.getByText(uniqueFileName)).toBeVisible();
+
+    await page.goto(`/dashboard/dokumen?q=${uniqueSearchTerm}`);
+
+    const documentRow = page
+      .locator('[data-slot="card"]')
+      .filter({ has: page.getByText(uniqueFileName) })
+      .first();
+
+    await expect(documentRow.getByText(uniqueFileName)).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(documentRow.getByText(`KK ${noKk}`)).toBeVisible();
+    await expect(documentRow.getByText("Dokumen KK")).toBeVisible();
+
+    await documentRow.getByRole("button", { name: "Buka KK" }).click();
     await expect(
       page.getByRole("heading", { name: `KK ${noKk}` }),
     ).toBeVisible();
+    await page.getByRole("button", { name: /^Hapus$/ }).click();
+    await page.getByRole("button", { name: "Ya, hapus" }).click();
+
     await expect(
-      page.getByText("Budi Santoso", { exact: true }).first(),
+      page.getByText(`Berkas ${uniqueFileName} berhasil dihapus.`),
     ).toBeVisible();
 
-    await page.goto(`/dashboard/pencarian?q=${noKk}`);
-    await expect(page.getByText(`No. KK ${noKk}`)).toBeVisible();
-    await page.getByRole("button", { name: "Lihat detail" }).click();
     await expect(
-      page.getByRole("heading", { name: `KK ${noKk}` }),
-    ).toBeVisible();
+      detailDocumentCard.getByText(uniqueFileName),
+    ).not.toBeVisible();
+
+    await page.goto(`/dashboard/dokumen?q=${uniqueSearchTerm}`);
+    await expect(page.getByText("Belum ada dokumen")).toBeVisible();
   });
 });

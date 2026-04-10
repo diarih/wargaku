@@ -75,6 +75,52 @@ describe("household helpers", () => {
     });
   });
 
+  it("marks residents with 1-3 missing fields as warning", () => {
+    expect(
+      getResidentCompleteness({
+        id: "resident-2",
+        namaLengkap: "Siti",
+        nik: "3201010101010102",
+        jenisKelamin: "Perempuan",
+        tempatLahir: "Bandung",
+        tanggalLahir: new Date("1994-02-03"),
+        hubunganDalamKk: "Istri",
+        agama: null,
+        pendidikan: "SMA/SMK/Sederajat",
+        pekerjaan: null,
+        statusPerkawinan: "Kawin",
+        isKepalaKeluarga: false,
+      }),
+    ).toMatchObject({
+      status: "warning",
+      score: 80,
+      missing: ["Agama", "Pekerjaan"],
+    });
+  });
+
+  it("marks residents with complete data as complete", () => {
+    expect(
+      getResidentCompleteness({
+        id: "resident-3",
+        namaLengkap: "Siti",
+        nik: "3201010101010103",
+        jenisKelamin: "Perempuan",
+        tempatLahir: "Bandung",
+        tanggalLahir: new Date("1994-02-03"),
+        hubunganDalamKk: "Istri",
+        agama: "Islam",
+        pendidikan: "SMA/SMK/Sederajat",
+        pekerjaan: "Wiraswasta",
+        statusPerkawinan: "Kawin",
+        isKepalaKeluarga: false,
+      }),
+    ).toMatchObject({
+      status: "complete",
+      score: 100,
+      missing: [],
+    });
+  });
+
   it("marks households without a single head of family as critical", () => {
     expect(
       getHouseholdCompleteness({
@@ -106,7 +152,121 @@ describe("household helpers", () => {
       }),
     ).toMatchObject({
       status: "warning",
-      missing: expect.arrayContaining(["Kepala keluarga belum dipilih"]),
+      missing: expect.arrayContaining([
+        "Kepala keluarga belum dipilih",
+        "Status tempat tinggal belum diisi",
+      ]),
+    });
+  });
+
+  it("marks households with duplicate heads as critical", () => {
+    expect(
+      getHouseholdCompleteness({
+        noKk: "3201010101010101",
+        alamat: "Jalan Melati No. 17",
+        rt: "01",
+        rw: "02",
+        kelurahan: "Cibiru",
+        kecamatan: "Cibiru",
+        kota: "Bandung",
+        provinsi: "Jawa Barat",
+        phone: "08123456789",
+        statusTempatTinggal: "Kontrak",
+        residents: [
+          {
+            id: "resident-1",
+            namaLengkap: "Budi",
+            nik: "3201010101010101",
+            jenisKelamin: "Laki-laki",
+            tempatLahir: "Bandung",
+            tanggalLahir: new Date("1990-01-01"),
+            hubunganDalamKk: "Kepala Keluarga",
+            agama: "Islam",
+            pendidikan: "SMA/SMK/Sederajat",
+            pekerjaan: "Karyawan Swasta",
+            statusPerkawinan: "Kawin",
+            isKepalaKeluarga: true,
+          },
+          {
+            id: "resident-2",
+            namaLengkap: "Siti",
+            nik: "3201010101010102",
+            jenisKelamin: "Perempuan",
+            tempatLahir: "Bandung",
+            tanggalLahir: new Date("1992-01-01"),
+            hubunganDalamKk: "Kepala Keluarga",
+            agama: "Islam",
+            pendidikan: "SMA/SMK/Sederajat",
+            pekerjaan: "Wiraswasta",
+            statusPerkawinan: "Kawin",
+            isKepalaKeluarga: true,
+          },
+        ],
+      }),
+    ).toMatchObject({
+      status: "critical",
+      missing: expect.arrayContaining([
+        "Kepala keluarga harus tepat satu orang",
+      ]),
+    });
+  });
+
+  it("marks households with no residents as critical", () => {
+    expect(
+      getHouseholdCompleteness({
+        noKk: "3201010101010101",
+        alamat: "Jalan Melati No. 17",
+        rt: "01",
+        rw: "02",
+        kelurahan: "Cibiru",
+        kecamatan: "Cibiru",
+        kota: "Bandung",
+        provinsi: "Jawa Barat",
+        phone: "08123456789",
+        statusTempatTinggal: "Kontrak",
+        residents: [],
+      }),
+    ).toMatchObject({
+      status: "critical",
+      missing: expect.arrayContaining(["Belum ada anggota keluarga"]),
+    });
+  });
+
+  it("returns a complete household score for complete data", () => {
+    expect(
+      getHouseholdCompleteness({
+        noKk: "3201010101010101",
+        alamat: "Jalan Melati No. 17",
+        rt: "01",
+        rw: "02",
+        kelurahan: "Cibiru",
+        kecamatan: "Cibiru",
+        kota: "Bandung",
+        provinsi: "Jawa Barat",
+        phone: "08123456789",
+        statusTempatTinggal: "Kontrak",
+        residents: [
+          {
+            id: "resident-1",
+            namaLengkap: "Budi",
+            nik: "3201010101010101",
+            jenisKelamin: "Laki-laki",
+            tempatLahir: "Bandung",
+            tanggalLahir: new Date("1990-01-01"),
+            hubunganDalamKk: "Kepala Keluarga",
+            agama: "Islam",
+            pendidikan: "SMA/SMK/Sederajat",
+            pekerjaan: "Karyawan Swasta",
+            statusPerkawinan: "Kawin",
+            isKepalaKeluarga: true,
+          },
+        ],
+      }),
+    ).toMatchObject({
+      status: "complete",
+      score: 100,
+      missing: [],
+      headOfFamily: expect.objectContaining({ namaLengkap: "Budi" }),
     });
   });
 });

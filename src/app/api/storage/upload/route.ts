@@ -1,21 +1,15 @@
 import { randomUUID } from "node:crypto";
 
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { supabaseAdmin } from "~/server/supabase";
-import { env } from "~/env";
+import { storageBucket, uploadObject } from "~/server/storage";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-export async function POST(request: Request) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
+async function postUpload(request: Request, userId: string) {
   const formData = await request.formData();
   const file = formData.get("file");
   const residentId = formData.get("residentId");
@@ -53,29 +47,40 @@ export async function POST(request: Request) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const { error: uploadError } = await supabaseAdmin.storage
-    .from(env.SUPABASE_STORAGE_BUCKET)
-    .upload(path, buffer, {
-      upsert: false,
-      contentType: file.type,
+  try {
+    await uploadObject({
+      key: path,
+      body: buffer,
+      contentType: file.type || "application/octet-stream",
     });
-
-  if (uploadError) {
-    return NextResponse.json({ message: uploadError.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error ? error.message : "Failed to upload file",
+      },
+      { status: 500 },
+    );
   }
 
   const asset = await db.fileAsset.create({
     data: {
-      bucket: env.SUPABASE_STORAGE_BUCKET,
+      bucket: storageBucket,
       path,
       fileName: file.name,
       mimeType: file.type || "application/octet-stream",
       size: file.size,
       residentId: safeResidentId,
       householdId: safeHouseholdId,
-      uploadedById: session.user.id,
+      uploadedById: userId,
     },
   });
+
+  if (safeHouseholdId) {
+    revalidatePath(`/dashboard/kk/${safeHouseholdId}`);
+  }
+
+  revalidatePath("/dashboard/dokumen");
 
   return NextResponse.json({
     id: asset.id,
@@ -84,3 +89,19 @@ export async function POST(request: Request) {
     fileName: asset.fileName,
   });
 }
+
+async function postUploadAuthed(
+  request: Request & { auth?: { user?: { id?: string } } | null },
+) {
+  const userId = request.auth?.user?.id;
+
+  if (!userId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  return postUpload(request, userId);
+}
+
+export const POST = auth(postUploadAuthed) as unknown as (
+  request: Request,
+) => Promise<Response>;

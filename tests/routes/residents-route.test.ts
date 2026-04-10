@@ -1,6 +1,14 @@
 import { Prisma } from "@prisma/client";
 
-const authMock = vi.fn();
+let sessionMock: { user?: { id: string } } | null = null;
+const authMock = vi.fn((arg?: unknown) => {
+  if (typeof arg === "function") {
+    return (request: Request, context?: unknown) =>
+      arg(Object.assign(request, { auth: sessionMock }), context);
+  }
+
+  return Promise.resolve(sessionMock);
+});
 const transactionMock = vi.fn();
 const updateManyMock = vi.fn();
 const createMock = vi.fn();
@@ -22,7 +30,8 @@ vi.mock("~/server/household-head", () => ({
 
 describe("POST /api/residents", () => {
   beforeEach(() => {
-    authMock.mockReset();
+    sessionMock = null;
+    authMock.mockClear();
     transactionMock.mockReset();
     updateManyMock.mockReset();
     createMock.mockReset();
@@ -47,8 +56,6 @@ describe("POST /api/residents", () => {
   });
 
   it("returns 401 when the request is unauthenticated", async () => {
-    authMock.mockResolvedValue(null);
-
     const { POST } = await import("~/app/api/residents/route");
     const response = await POST(
       new Request("http://localhost/api/residents", {
@@ -62,7 +69,7 @@ describe("POST /api/residents", () => {
   });
 
   it("returns redirect payloads and syncs the head of family on success", async () => {
-    authMock.mockResolvedValue({ user: { id: "user-1" } });
+    sessionMock = { user: { id: "user-1" } };
     createMock.mockResolvedValue({
       id: "resident-1",
       householdId: "household-1",
@@ -119,7 +126,7 @@ describe("POST /api/residents", () => {
   });
 
   it("maps duplicate nik errors to 409 responses", async () => {
-    authMock.mockResolvedValue({ user: { id: "user-1" } });
+    sessionMock = { user: { id: "user-1" } };
     createMock.mockRejectedValue(
       new Prisma.PrismaClientKnownRequestError("Duplicate", {
         code: "P2002",

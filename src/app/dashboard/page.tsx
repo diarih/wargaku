@@ -22,88 +22,12 @@ import {
 } from "~/components/ui/card";
 import { FadeIn } from "~/components/animated/fade-in";
 import { db } from "~/server/db";
+import {
+  getAgeDistribution,
+  getLivingStatusSummary,
+  getPercent,
+} from "~/server/dashboard";
 import { getHouseholdCompleteness } from "~/server/households";
-
-const ageBuckets = [
-  { label: "Balita", min: 0, max: 5 },
-  { label: "Anak", min: 6, max: 12 },
-  { label: "Remaja", min: 13, max: 17 },
-  { label: "Dewasa", min: 18, max: 59 },
-  { label: "Lansia", min: 60, max: Infinity },
-] as const;
-
-function getAgeInYears(date: Date | null) {
-  if (!date || Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  const today = new Date();
-  let age = today.getFullYear() - date.getFullYear();
-  const monthDiff = today.getMonth() - date.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
-    age -= 1;
-  }
-
-  return age >= 0 ? age : null;
-}
-
-function getAgeDistribution(residents: { tanggalLahir: Date | null }[]) {
-  const counts = ageBuckets.map((bucket) => ({ ...bucket, total: 0 }));
-  let unknown = 0;
-
-  for (const resident of residents) {
-    const age = getAgeInYears(resident.tanggalLahir);
-
-    if (age === null) {
-      unknown += 1;
-      continue;
-    }
-
-    const bucket = counts.find((item) => age >= item.min && age <= item.max);
-
-    if (bucket) {
-      bucket.total += 1;
-    } else {
-      unknown += 1;
-    }
-  }
-
-  return { counts, unknown };
-}
-
-function getLivingStatusSummary(
-  households: { statusTempatTinggal: string | null }[],
-) {
-  let rent = 0;
-  let nonRent = 0;
-  let unknown = 0;
-
-  for (const household of households) {
-    const value = household.statusTempatTinggal?.trim();
-
-    if (!value) {
-      unknown += 1;
-      continue;
-    }
-
-    if (value === "Kontrak" || value === "Sewa" || value === "Kost") {
-      rent += 1;
-    } else {
-      nonRent += 1;
-    }
-  }
-
-  return { rent, nonRent, unknown };
-}
-
-function getPercent(value: number, total: number) {
-  if (total === 0) {
-    return 0;
-  }
-
-  return Math.round((value / total) * 100);
-}
 
 const cards = [
   {
