@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Home, Users } from "lucide-react";
+import { AlertTriangle, FileSearch, FileText, Home, Users } from "lucide-react";
 
 import { cn } from "~/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/dashboard/kk", label: "Kartu Keluarga", icon: Users },
+  { href: "/dashboard/cari", label: "Cari", icon: FileSearch },
+  { href: "/dashboard/tindak-lanjut", label: "Tindak Lanjut", icon: AlertTriangle },
   { href: "/dashboard/dokumen", label: "Dokumen", icon: FileText },
 ] as const;
 

@@ -1,7 +1,9 @@
 const authMock = vi.fn();
 const createMock = vi.fn();
 const uploadObjectMock = vi.fn();
+const revalidatePathMock = vi.fn();
 
+vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }));
 vi.mock("~/server/auth", () => ({ auth: authMock }));
 vi.mock("~/server/db", () => ({ db: { fileAsset: { create: createMock } } }));
 vi.mock("~/server/storage", () => ({
@@ -15,6 +17,7 @@ describe("POST /api/storage/upload", () => {
     authMock.mockReset();
     createMock.mockReset();
     uploadObjectMock.mockReset();
+    revalidatePathMock.mockReset();
   });
 
   function makeSizedFile(name: string, type: string, size: number) {
@@ -109,6 +112,10 @@ describe("POST /api/storage/upload", () => {
         }),
       }),
     );
+    expect(revalidatePathMock).toHaveBeenCalledWith(
+      "/dashboard/kk/household-1",
+    );
+    expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard/dokumen");
     expect(response.status).toBe(200);
   });
 

@@ -44,4 +44,17 @@ describe("DashboardNav", () => {
       "page",
     );
   });
+
+  it("renders new admin workflow links", () => {
+    pathnameMock.mockReturnValue("/dashboard/cari");
+    render(createElement(DashboardNav, { orientation: "horizontal" }));
+
+    expect(screen.getByRole("link", { name: /cari/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(
+      screen.getByRole("link", { name: /tindak lanjut/i }),
+    ).toBeInTheDocument();
+  });
 });

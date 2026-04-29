@@ -69,38 +69,42 @@ export function DocumentUploader({
   };
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <label
-        className={`bg-background flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
-          isPending
-            ? "cursor-not-allowed opacity-70"
-            : "hover:bg-muted cursor-pointer"
-        }`}
-      >
-        <Upload className="text-primary size-4" />
-        <span className="truncate">
-          {fileName || "Pilih dokumen (maks. 5MB)"}
-          {fileName && fileSize
-            ? ` - ${(fileSize / 1024 / 1024).toFixed(2)} MB`
-            : ""}
-        </span>
-        <input
-          ref={inputRef}
-          type="file"
-          className="hidden"
-          disabled={isPending}
-          onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")}
-        />
-      </label>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <label
+          className={`bg-background flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
+            isPending
+              ? "cursor-not-allowed opacity-70"
+              : "hover:bg-muted cursor-pointer"
+          }`}
+        >
+          <Upload className="text-primary size-4" />
+          <span className="truncate">
+            {fileName || "Pilih dokumen (maks. 5MB)"}
+            {fileName && fileSize
+              ? ` - ${(fileSize / 1024 / 1024).toFixed(2)} MB`
+              : ""}
+          </span>
+          <input
+            ref={inputRef}
+            type="file"
+            className="hidden"
+            disabled={isPending}
+            onChange={(event) =>
+              setFileName(event.target.files?.[0]?.name ?? "")
+            }
+          />
+        </label>
 
-      <Button type="button" onClick={handleUpload} disabled={isPending}>
-        {isPending ? (
-          <LoaderCircle className="size-4 animate-spin" />
-        ) : (
-          <Upload className="size-4" />
-        )}
-        {isPending ? "Mengunggah..." : "Upload berkas"}
-      </Button>
+        <Button type="button" onClick={handleUpload} disabled={isPending}>
+          {isPending ? (
+            <LoaderCircle className="size-4 animate-spin" />
+          ) : (
+            <Upload className="size-4" />
+          )}
+          {isPending ? "Mengunggah..." : "Upload berkas"}
+        </Button>
+      </div>
 
       <p aria-live="polite" className="text-muted-foreground text-xs">
         {isPending

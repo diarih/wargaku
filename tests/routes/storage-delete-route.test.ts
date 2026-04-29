@@ -2,7 +2,9 @@ const findUniqueMock = vi.fn();
 const deleteMock = vi.fn();
 const deleteObjectMock = vi.fn();
 const authSessionMock = vi.fn();
+const revalidatePathMock = vi.fn();
 
+vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }));
 vi.mock("~/server/auth", () => ({ auth: authSessionMock }));
 vi.mock("~/server/db", () => ({
   db: { fileAsset: { findUnique: findUniqueMock, delete: deleteMock } },
@@ -16,6 +18,7 @@ describe("DELETE /api/storage/[id]", () => {
     deleteMock.mockReset();
     deleteObjectMock.mockReset();
     authSessionMock.mockReset();
+    revalidatePathMock.mockReset();
   });
 
   it("returns 401 without a session", async () => {
@@ -74,6 +77,7 @@ describe("DELETE /api/storage/[id]", () => {
 
     expect(deleteObjectMock).toHaveBeenCalledWith("household/1/kk.pdf");
     expect(deleteMock).toHaveBeenCalledWith({ where: { id: "file-1" } });
+    expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard/dokumen");
     expect(response.status).toBe(200);
   });
 });

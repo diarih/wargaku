@@ -184,9 +184,7 @@ export default async function DocumentsPage({
                       nativeButton={false}
                       variant="outline"
                       render={
-                        <Link
-                          href={`/dashboard/warga/${file.resident.id}/edit`}
-                        />
+                        <Link href={`/dashboard/warga/${file.resident.id}`} />
                       }
                     >
                       Buka Warga
