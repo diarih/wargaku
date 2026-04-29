@@ -1,18 +1,18 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { Edit3, FileText } from "lucide-react";
+import { Edit3 } from "lucide-react";
 
 import { CompletenessBadge } from "~/app/dashboard/_components/completeness-badge";
 import { DocumentUploader } from "~/app/dashboard/_components/document-uploader";
 import { FileDeleteButton } from "~/app/dashboard/_components/file-delete-button";
 import { InitialsAvatar } from "~/app/dashboard/_components/initials-avatar";
+import { DetailGroup } from "~/components/dashboard/detail-group";
+import { EmptyStatePanel } from "~/components/dashboard/empty-state-panel";
+import { FileAssetRow } from "~/components/dashboard/file-asset-row";
+import { SectionHeading } from "~/components/dashboard/section-heading";
 import { Badge } from "~/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from "~/components/ui/card";
+import { buttonVariants } from "~/components/ui/button.styles";
+import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { getInitialsAvatarUrl } from "~/lib/avatar";
 
 export type ResidentDetailViewProps = {
@@ -54,10 +54,6 @@ export type ResidentDetailViewProps = {
 };
 
 const EMPTY_VALUE = "Belum diisi";
-const outlineLinkClass =
-  "group/button inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-sm font-medium whitespace-nowrap transition-all outline-none select-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 dark:border-input dark:bg-input/30 dark:hover:bg-input/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4";
-const primaryLinkClass =
-  "group/button inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary px-2.5 text-sm font-medium whitespace-nowrap text-primary-foreground transition-all outline-none select-none hover:bg-primary/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4";
 
 function detailValue(value: string | null) {
   return value?.trim() ? value : EMPTY_VALUE;
@@ -79,59 +75,6 @@ function birthDetail(place: string | null, date: Date | null) {
   }
 
   return EMPTY_VALUE;
-}
-
-function formatFileSize(size: number) {
-  if (size < 1024) {
-    return `${size} B`;
-  }
-
-  if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(2)} KB`;
-  }
-
-  return `${(size / 1024 / 1024).toFixed(2)} MB`;
-}
-
-function DetailRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex flex-col gap-1 border-b py-3 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-      <dt className="text-muted-foreground text-sm">{label}</dt>
-      <dd className="text-sm font-medium sm:max-w-[60%] sm:text-right">{value}</dd>
-    </div>
-  );
-}
-
-function DetailGroup({
-  title,
-  description,
-  rows,
-}: {
-  title: string;
-  description: string;
-  rows: Array<{ label: string; value: string }>;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <h2 className="text-base leading-snug font-medium">{title}</h2>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <dl>
-          {rows.map((row) => (
-            <DetailRow key={row.label} label={row.label} value={row.value} />
-          ))}
-        </dl>
-      </CardContent>
-    </Card>
-  );
 }
 
 export function ResidentDetailView({
@@ -158,7 +101,9 @@ export function ResidentDetailView({
                 <Badge variant={resident.isActive ? "secondary" : "outline"}>
                   {resident.isActive ? "Warga Aktif" : "Warga Nonaktif"}
                 </Badge>
-                {resident.isKepalaKeluarga ? <Badge>Kepala Keluarga</Badge> : null}
+                {resident.isKepalaKeluarga ? (
+                  <Badge>Kepala Keluarga</Badge>
+                ) : null}
                 <CompletenessBadge
                   status={completeness.status}
                   score={completeness.score}
@@ -166,7 +111,7 @@ export function ResidentDetailView({
               </div>
 
               <div className="space-y-1">
-                <p className="text-muted-foreground text-xs font-medium uppercase tracking-[0.18em]">
+                <p className="text-muted-foreground text-xs font-medium tracking-[0.18em] uppercase">
                   Detail Warga
                 </p>
                 <h1 className="text-3xl font-semibold tracking-tight lg:text-4xl">
@@ -176,19 +121,19 @@ export function ResidentDetailView({
 
               <div className="grid gap-3 text-sm sm:grid-cols-2">
                 <div>
-                  <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                  <p className="text-muted-foreground text-xs tracking-wide uppercase">
                     NIK
                   </p>
                   <p className="mt-1 font-medium">{resident.nik}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                  <p className="text-muted-foreground text-xs tracking-wide uppercase">
                     Peran dalam KK
                   </p>
                   <p className="mt-1 font-medium">{resident.hubunganDalamKk}</p>
                 </div>
                 <div className="sm:col-span-2">
-                  <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                  <p className="text-muted-foreground text-xs tracking-wide uppercase">
                     Kartu Keluarga
                   </p>
                   <p className="mt-1 font-medium">
@@ -203,13 +148,13 @@ export function ResidentDetailView({
           <div className="flex flex-col gap-2 sm:flex-row xl:flex-col xl:items-stretch">
             <Link
               href={`/dashboard/kk/${resident.household.id}`}
-              className={outlineLinkClass}
+              className={buttonVariants({ variant: "outline" })}
             >
               Buka KK
             </Link>
             <Link
               href={`/dashboard/warga/${resident.id}/edit`}
-              className={primaryLinkClass}
+              className={buttonVariants({ variant: "default" })}
             >
               <Edit3 className="size-4" />
               Edit warga
@@ -266,13 +211,10 @@ export function ResidentDetailView({
         <div className="space-y-4 xl:sticky xl:top-24">
           <Card>
             <CardHeader className="pb-3">
-              <h2 className="text-base leading-snug font-medium">
-                Kelengkapan Data
-              </h2>
-              <CardDescription>
-                Ringkasan kelengkapan identitas warga yang masih perlu
-                ditindaklanjuti.
-              </CardDescription>
+              <SectionHeading
+                title="Kelengkapan Data"
+                description="Ringkasan kelengkapan identitas warga yang masih perlu ditindaklanjuti."
+              />
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-muted/40 rounded-2xl border px-4 py-3">
@@ -315,58 +257,34 @@ export function ResidentDetailView({
 
           <Card>
             <CardHeader className="pb-3">
-              <h2 className="text-base leading-snug font-medium">
-                Dokumen Warga
-              </h2>
-              <CardDescription>
-                Unggah dan kelola dokumen pendukung yang melekat pada profil
-                warga.
-              </CardDescription>
+              <SectionHeading
+                title="Dokumen Warga"
+                description="Unggah dan kelola dokumen pendukung yang melekat pada profil warga."
+              />
             </CardHeader>
             <CardContent className="space-y-4">
               <DocumentUploader residentId={resident.id} />
 
               {files.length === 0 ? (
-                <div className="text-muted-foreground rounded-xl border border-dashed px-4 py-3 text-sm">
-                  Belum ada dokumen warga.
-                </div>
+                <EmptyStatePanel title="Belum ada dokumen warga." />
               ) : (
                 <div className="space-y-3">
                   {files.map((file) => (
-                    <div
+                    <FileAssetRow
                       key={file.id}
-                      className="rounded-2xl border bg-background/60 px-4 py-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <span className="bg-muted inline-flex size-9 items-center justify-center rounded-xl border">
-                            <FileText className="text-primary size-4" />
-                          </span>
-                          <div>
-                            <p className="text-sm font-medium">{file.fileName}</p>
-                            <p className="text-muted-foreground text-xs">
-                              {formatFileSize(file.size)} - {file.mimeType}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="outline">
-                          {format(file.createdAt, "dd MMM yyyy")}
-                        </Badge>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        {file.downloadUrl ? (
-                          <a
-                            href={file.downloadUrl}
-                            aria-label={`Buka dokumen ${file.fileName}`}
-                            className={outlineLinkClass}
-                          >
-                            Buka dokumen
-                          </a>
-                        ) : null}
-                        <FileDeleteButton fileId={file.id} fileName={file.fileName} />
-                      </div>
-                    </div>
+                      fileName={file.fileName}
+                      mimeType={file.mimeType}
+                      size={file.size}
+                      createdAt={file.createdAt}
+                      openHref={file.downloadUrl}
+                      className="bg-background/60"
+                      actions={
+                        <FileDeleteButton
+                          fileId={file.id}
+                          fileName={file.fileName}
+                        />
+                      }
+                    />
                   ))}
                 </div>
               )}

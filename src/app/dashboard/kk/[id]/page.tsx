@@ -1,18 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
-import {
-  CalendarDays,
-  Edit3,
-  FileText,
-  Plus,
-  TriangleAlert,
-} from "lucide-react";
+import { Edit3, Plus, TriangleAlert } from "lucide-react";
 
 import { CompletenessBadge } from "~/app/dashboard/_components/completeness-badge";
 import { DocumentUploader } from "~/app/dashboard/_components/document-uploader";
 import { FileDeleteButton } from "~/app/dashboard/_components/file-delete-button";
 import { InitialsAvatar } from "~/app/dashboard/_components/initials-avatar";
+import { EmptyStatePanel } from "~/components/dashboard/empty-state-panel";
+import { FileAssetRow } from "~/components/dashboard/file-asset-row";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -148,10 +144,10 @@ export default async function HouseholdDetailPage({
           </CardHeader>
           <CardContent className="space-y-3">
             {household.residents.length === 0 ? (
-              <div className="text-muted-foreground rounded-xl border border-dashed p-4 text-sm">
-                Belum ada anggota tercatat. Tambahkan anggota pertama untuk
-                mulai melengkapi data KK.
-              </div>
+              <EmptyStatePanel
+                title="Belum ada anggota tercatat."
+                description="Tambahkan anggota pertama untuk mulai melengkapi data KK."
+              />
             ) : (
               household.residents.map((resident) => {
                 const residentCompleteness = getResidentCompleteness(resident);
@@ -278,53 +274,24 @@ export default async function HouseholdDetailPage({
               <DocumentUploader householdId={household.id} />
 
               {filesWithUrl.length === 0 ? (
-                <div className="text-muted-foreground rounded-xl border border-dashed p-4 text-sm">
-                  Belum ada berkas terunggah.
-                </div>
+                <EmptyStatePanel title="Belum ada berkas terunggah." />
               ) : (
                 <div className="space-y-3">
                   {filesWithUrl.map((file) => (
-                    <div
+                    <FileAssetRow
                       key={file.id}
-                      className="bg-muted/30 flex flex-col gap-3 rounded-2xl border p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <span className="bg-background inline-flex size-10 items-center justify-center rounded-xl border">
-                            <FileText className="text-primary size-4" />
-                          </span>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {file.fileName}
-                            </p>
-                            <p className="text-muted-foreground text-xs">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB -{" "}
-                              {file.mimeType}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="outline">
-                          {format(file.createdAt, "dd MMM yyyy")}
-                        </Badge>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        {file.downloadUrl ? (
-                          <Button
-                            nativeButton={false}
-                            variant="outline"
-                            render={<a href={file.downloadUrl}>Unduh</a>}
-                          >
-                            <CalendarDays className="size-4" />
-                            Buka dokumen
-                          </Button>
-                        ) : null}
+                      fileName={file.fileName}
+                      mimeType={file.mimeType}
+                      size={file.size}
+                      createdAt={file.createdAt}
+                      openHref={file.downloadUrl}
+                      actions={
                         <FileDeleteButton
                           fileId={file.id}
                           fileName={file.fileName}
                         />
-                      </div>
-                    </div>
+                      }
+                    />
                   ))}
                 </div>
               )}

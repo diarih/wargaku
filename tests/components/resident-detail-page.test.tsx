@@ -45,7 +45,7 @@ describe("ResidentDetailView", () => {
           jenisKelamin: "Laki-laki",
           statusPerkawinan: "Belum Kawin",
           tempatLahir: "Bandung",
-          tanggalLahir: new Date("1990-01-01T00:00:00.000Z"),
+          tanggalLahir: new Date("1990-01-01T12:00:00.000Z"),
           agama: "Islam",
           pendidikan: "SMA",
           pekerjaan: "Wiraswasta",
@@ -68,7 +68,7 @@ describe("ResidentDetailView", () => {
             fileName: "ktp.pdf",
             size: 2048,
             mimeType: "application/pdf",
-            createdAt: new Date("2024-01-10T00:00:00.000Z"),
+            createdAt: new Date("2024-01-10T12:00:00.000Z"),
             downloadUrl: "https://example.com/ktp.pdf",
           },
           {
@@ -76,7 +76,7 @@ describe("ResidentDetailView", () => {
             fileName: "kk.pdf",
             size: 1024 * 1024,
             mimeType: "application/pdf",
-            createdAt: new Date("2024-01-11T00:00:00.000Z"),
+            createdAt: new Date("2024-01-11T12:00:00.000Z"),
             downloadUrl: "https://example.com/kk.pdf",
           },
         ],
@@ -94,6 +94,9 @@ describe("ResidentDetailView", () => {
     expect(
       screen.getByRole("link", { name: /edit warga/i }),
     ).toHaveAttribute("href", "/dashboard/warga/resident-1/edit");
+    expect(
+      screen.getByRole("link", { name: /edit warga/i }),
+    ).toHaveClass("hover:bg-primary/80");
 
     expect(
       screen.getByRole("heading", { name: "Identitas Dasar" }),
@@ -187,7 +190,7 @@ describe("ResidentDetailView", () => {
           jenisKelamin: "Perempuan",
           statusPerkawinan: "Belum Kawin",
           tempatLahir: "Bandung",
-          tanggalLahir: new Date("2001-01-01T00:00:00.000Z"),
+          tanggalLahir: new Date("2001-01-01T12:00:00.000Z"),
           agama: "Islam",
           pendidikan: "SMA",
           pekerjaan: "Pelajar/Mahasiswa",
@@ -210,7 +213,7 @@ describe("ResidentDetailView", () => {
             fileName: "surat.pdf",
             size: 1024,
             mimeType: "application/pdf",
-            createdAt: new Date("2024-02-10T00:00:00.000Z"),
+            createdAt: new Date("2024-02-10T12:00:00.000Z"),
             downloadUrl: null,
           },
         ],
