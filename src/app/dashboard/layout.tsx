@@ -71,7 +71,7 @@ export default async function DashboardLayout({
       </header>
 
       <div className="mx-auto flex max-w-6xl gap-6 px-4 py-6">
-        <aside className="bg-background/80 hidden h-fit min-w-60 rounded-2xl border p-3 md:block">
+        <aside className="bg-background/80 hidden h-fit max-w-60 rounded-2xl border p-3 md:block">
           <div className="px-2 pb-2">
             <Link href="/dashboard" className="mb-3 inline-flex items-center">
               <AppLogo size="sm" />
