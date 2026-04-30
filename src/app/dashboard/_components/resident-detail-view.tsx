@@ -6,6 +6,7 @@ import { CompletenessBadge } from "~/app/dashboard/_components/completeness-badg
 import { DocumentUploader } from "~/app/dashboard/_components/document-uploader";
 import { FileDeleteButton } from "~/app/dashboard/_components/file-delete-button";
 import { InitialsAvatar } from "~/app/dashboard/_components/initials-avatar";
+import { AuditTimeline } from "~/components/dashboard/audit-timeline";
 import { DetailGroup } from "~/components/dashboard/detail-group";
 import { EmptyStatePanel } from "~/components/dashboard/empty-state-panel";
 import { FileAssetRow } from "~/components/dashboard/file-asset-row";
@@ -14,6 +15,7 @@ import { Badge } from "~/components/ui/badge";
 import { buttonVariants } from "~/components/ui/button.styles";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { getInitialsAvatarUrl } from "~/lib/avatar";
+import type { AuditTimelineItem } from "~/server/audit";
 
 export type ResidentDetailViewProps = {
   resident: {
@@ -51,6 +53,7 @@ export type ResidentDetailViewProps = {
     createdAt: Date;
     downloadUrl: string | null;
   }>;
+  timeline?: AuditTimelineItem[];
 };
 
 const EMPTY_VALUE = "Belum diisi";
@@ -81,6 +84,7 @@ export function ResidentDetailView({
   resident,
   completeness,
   files,
+  timeline = [],
 }: ResidentDetailViewProps) {
   const missingCount = completeness.missing.length;
 
@@ -290,6 +294,8 @@ export function ResidentDetailView({
               )}
             </CardContent>
           </Card>
+
+          <AuditTimeline items={timeline} />
         </div>
       </section>
     </div>

@@ -2,15 +2,20 @@ import { Prisma } from "@prisma/client";
 
 const authMock = vi.fn();
 const updateMock = vi.fn();
+const recordAuditEventMock = vi.fn();
 
 vi.mock("~/server/auth", () => ({ auth: authMock }));
 vi.mock("~/server/db", () => ({ db: { household: { update: updateMock } } }));
+vi.mock("~/server/audit", () => ({
+  recordAuditEvent: recordAuditEventMock,
+}));
 
 describe("PATCH /api/households/[id]", () => {
   beforeEach(() => {
     vi.resetModules();
     authMock.mockReset();
     updateMock.mockReset();
+    recordAuditEventMock.mockReset();
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -77,6 +82,16 @@ describe("PATCH /api/households/[id]", () => {
           phone: "08123456789",
           statusTempatTinggal: "Kontrak",
         }),
+      }),
+    );
+    expect(recordAuditEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: "user-1",
+        entityId: "household-1",
+        entityType: "HOUSEHOLD",
+        householdId: "household-1",
+        summary: "KK 3201010101010101 diperbarui.",
+        type: "HOUSEHOLD_UPDATED",
       }),
     );
     await expect(response.json()).resolves.toEqual({

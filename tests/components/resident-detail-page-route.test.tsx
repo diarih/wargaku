@@ -6,11 +6,13 @@ import type { ResidentDetailViewProps } from "~/app/dashboard/_components/reside
 const {
   findUniqueMock,
   createSignedDownloadUrlMock,
+  getResidentTimelineMock,
   residentDetailViewMock,
   notFoundMock,
 } = vi.hoisted(() => ({
   findUniqueMock: vi.fn(),
   createSignedDownloadUrlMock: vi.fn(),
+  getResidentTimelineMock: vi.fn(),
   residentDetailViewMock: vi.fn(),
   notFoundMock: vi.fn(),
 }));
@@ -34,6 +36,10 @@ vi.mock("~/server/storage", () => ({
   createSignedDownloadUrl: createSignedDownloadUrlMock,
 }));
 
+vi.mock("~/server/audit", () => ({
+  getResidentTimeline: getResidentTimelineMock,
+}));
+
 vi.mock("~/app/dashboard/_components/resident-detail-view", () => ({
   ResidentDetailView: (props: ResidentDetailViewProps) => {
     residentDetailViewMock(props);
@@ -50,8 +56,10 @@ describe("ResidentDetailPage", () => {
   beforeEach(() => {
     findUniqueMock.mockReset();
     createSignedDownloadUrlMock.mockReset();
+    getResidentTimelineMock.mockReset();
     residentDetailViewMock.mockReset();
     notFoundMock.mockReset();
+    getResidentTimelineMock.mockResolvedValue([]);
   });
 
   it("fetches the resident and passes computed detail props to the view", async () => {
@@ -87,11 +95,12 @@ describe("ResidentDetailPage", () => {
         },
       ],
     });
-    createSignedDownloadUrlMock.mockResolvedValue("https://example.com/ktp.pdf");
+    createSignedDownloadUrlMock.mockResolvedValue(
+      "https://example.com/ktp.pdf",
+    );
 
-    const ResidentDetailPage = (
-      await import("~/app/dashboard/warga/[id]/page")
-    ).default;
+    const ResidentDetailPage = (await import("~/app/dashboard/warga/[id]/page"))
+      .default;
 
     render(
       await ResidentDetailPage({
@@ -139,6 +148,7 @@ describe("ResidentDetailPage", () => {
           downloadUrl: "https://example.com/ktp.pdf",
         }),
       ],
+      timeline: [],
     });
 
     expect(
@@ -150,9 +160,8 @@ describe("ResidentDetailPage", () => {
   it("calls notFound when the resident does not exist", async () => {
     findUniqueMock.mockResolvedValue(null);
 
-    const ResidentDetailPage = (
-      await import("~/app/dashboard/warga/[id]/page")
-    ).default;
+    const ResidentDetailPage = (await import("~/app/dashboard/warga/[id]/page"))
+      .default;
 
     await expect(
       ResidentDetailPage({ params: Promise.resolve({ id: "missing" }) }),
@@ -196,9 +205,8 @@ describe("ResidentDetailPage", () => {
     });
     createSignedDownloadUrlMock.mockRejectedValue(new Error("storage down"));
 
-    const ResidentDetailPage = (
-      await import("~/app/dashboard/warga/[id]/page")
-    ).default;
+    const ResidentDetailPage = (await import("~/app/dashboard/warga/[id]/page"))
+      .default;
 
     render(
       await ResidentDetailPage({

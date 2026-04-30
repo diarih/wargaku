@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { auth } from "~/server/auth";
+import { recordAuditEvent } from "~/server/audit";
 import { db } from "~/server/db";
 import {
   normalizeOptional,
@@ -10,7 +11,11 @@ import {
 } from "~/server/households";
 import { syncHouseholdHeadOfFamily } from "~/server/household-head";
 
-async function postResident(request: Request, userId: string) {
+async function postResident(
+  request: Request,
+  userId: string,
+  actorName?: string | null,
+) {
   try {
     const payload = parseResidentPayload(await request.json());
 
@@ -56,6 +61,18 @@ async function postResident(request: Request, userId: string) {
       return created;
     });
 
+    await recordAuditEvent({
+      type: "RESIDENT_CREATED",
+      entityType: "RESIDENT",
+      entityId: resident.id,
+      householdId: resident.householdId,
+      residentId: resident.id,
+      actorId: userId,
+      actorName,
+      summary: `Warga ${payload.namaLengkap} ditambahkan.`,
+      metadata: { fallbackKey: `resident:${resident.id}:created` },
+    });
+
     return NextResponse.json({
       redirectTo: `/dashboard/kk/${resident.householdId}`,
     });
@@ -82,7 +99,9 @@ async function postResident(request: Request, userId: string) {
 }
 
 async function postResidentAuthed(
-  request: Request & { auth?: { user?: { id?: string } } | null },
+  request: Request & {
+    auth?: { user?: { id?: string; name?: string | null } } | null;
+  },
 ) {
   const userId = request.auth?.user?.id;
 
@@ -90,7 +109,7 @@ async function postResidentAuthed(
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  return postResident(request, userId);
+  return postResident(request, userId, request.auth?.user?.name);
 }
 
 export const POST = auth(postResidentAuthed) as unknown as (

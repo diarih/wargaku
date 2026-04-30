@@ -13,6 +13,7 @@ const transactionMock = vi.fn();
 const updateManyMock = vi.fn();
 const createMock = vi.fn();
 const syncHeadMock = vi.fn();
+const recordAuditEventMock = vi.fn();
 
 vi.mock("~/server/auth", () => ({
   auth: authMock,
@@ -28,6 +29,10 @@ vi.mock("~/server/household-head", () => ({
   syncHouseholdHeadOfFamily: syncHeadMock,
 }));
 
+vi.mock("~/server/audit", () => ({
+  recordAuditEvent: recordAuditEventMock,
+}));
+
 describe("POST /api/residents", () => {
   beforeEach(() => {
     sessionMock = null;
@@ -36,6 +41,7 @@ describe("POST /api/residents", () => {
     updateManyMock.mockReset();
     createMock.mockReset();
     syncHeadMock.mockReset();
+    recordAuditEventMock.mockReset();
 
     transactionMock.mockImplementation(
       async (
@@ -118,6 +124,17 @@ describe("POST /api/residents", () => {
     expect(syncHeadMock).toHaveBeenCalledWith(
       expect.any(Object),
       "household-1",
+    );
+    expect(recordAuditEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: "user-1",
+        entityId: "resident-1",
+        entityType: "RESIDENT",
+        householdId: "household-1",
+        residentId: "resident-1",
+        summary: "Warga Budi Santoso ditambahkan.",
+        type: "RESIDENT_CREATED",
+      }),
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({

@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { auth } from "~/server/auth";
+import { recordAuditEvent } from "~/server/audit";
 import { db } from "~/server/db";
 import { deleteObject } from "~/server/storage";
 
@@ -49,6 +50,19 @@ async function deleteFileAsset(request: Request, context: RouteContext) {
   }
 
   await db.fileAsset.delete({ where: { id } });
+
+  await recordAuditEvent({
+    type: "DOCUMENT_DELETED",
+    entityType: "DOCUMENT",
+    entityId: file.id,
+    householdId: file.householdId,
+    residentId: file.residentId,
+    fileAssetId: file.id,
+    actorId: session.user.id,
+    actorName: session.user.name,
+    summary: `Dokumen ${file.fileName} dihapus.`,
+    metadata: { fileName: file.fileName },
+  });
 
   if (file.householdId) {
     revalidatePath(`/dashboard/kk/${file.householdId}`);

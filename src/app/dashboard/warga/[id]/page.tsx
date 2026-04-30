@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ResidentDetailView } from "~/app/dashboard/_components/resident-detail-view";
+import { getResidentTimeline } from "~/server/audit";
 import { db } from "~/server/db";
 import { getResidentCompleteness } from "~/server/households";
 import { createSignedDownloadUrl } from "~/server/storage";
@@ -38,20 +39,24 @@ export default async function ResidentDetailPage({
   }
 
   const completeness = getResidentCompleteness(resident);
-  const filesWithUrl = await Promise.all(
-    resident.files.map(async (file) => ({
-      ...file,
-      downloadUrl: await createSignedDownloadUrl({ key: file.path }).catch(
-        () => null,
-      ),
-    })),
-  );
+  const [filesWithUrl, timeline] = await Promise.all([
+    Promise.all(
+      resident.files.map(async (file) => ({
+        ...file,
+        downloadUrl: await createSignedDownloadUrl({ key: file.path }).catch(
+          () => null,
+        ),
+      })),
+    ),
+    getResidentTimeline(resident.id),
+  ]);
 
   return (
     <ResidentDetailView
       resident={resident}
       completeness={completeness}
       files={filesWithUrl}
+      timeline={timeline}
     />
   );
 }

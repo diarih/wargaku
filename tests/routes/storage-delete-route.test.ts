@@ -3,6 +3,7 @@ const deleteMock = vi.fn();
 const deleteObjectMock = vi.fn();
 const authSessionMock = vi.fn();
 const revalidatePathMock = vi.fn();
+const recordAuditEventMock = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }));
 vi.mock("~/server/auth", () => ({ auth: authSessionMock }));
@@ -10,6 +11,9 @@ vi.mock("~/server/db", () => ({
   db: { fileAsset: { findUnique: findUniqueMock, delete: deleteMock } },
 }));
 vi.mock("~/server/storage", () => ({ deleteObject: deleteObjectMock }));
+vi.mock("~/server/audit", () => ({
+  recordAuditEvent: recordAuditEventMock,
+}));
 
 describe("DELETE /api/storage/[id]", () => {
   beforeEach(() => {
@@ -19,6 +23,7 @@ describe("DELETE /api/storage/[id]", () => {
     deleteObjectMock.mockReset();
     authSessionMock.mockReset();
     revalidatePathMock.mockReset();
+    recordAuditEventMock.mockReset();
   });
 
   it("returns 401 without a session", async () => {
@@ -48,7 +53,10 @@ describe("DELETE /api/storage/[id]", () => {
     authSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findUniqueMock.mockResolvedValue({
       id: "file-1",
+      fileName: "kk.pdf",
       path: "household/1/kk.pdf",
+      householdId: "household-1",
+      residentId: null,
     });
     deleteObjectMock.mockRejectedValue(new Error("R2 gagal"));
 
@@ -66,7 +74,10 @@ describe("DELETE /api/storage/[id]", () => {
     authSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findUniqueMock.mockResolvedValue({
       id: "file-1",
+      fileName: "kk.pdf",
       path: "household/1/kk.pdf",
+      householdId: "household-1",
+      residentId: null,
     });
 
     const { DELETE } = await import("~/app/api/storage/[id]/route");
@@ -77,6 +88,18 @@ describe("DELETE /api/storage/[id]", () => {
 
     expect(deleteObjectMock).toHaveBeenCalledWith("household/1/kk.pdf");
     expect(deleteMock).toHaveBeenCalledWith({ where: { id: "file-1" } });
+    expect(recordAuditEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: "user-1",
+        entityId: "file-1",
+        entityType: "DOCUMENT",
+        fileAssetId: "file-1",
+        householdId: "household-1",
+        metadata: expect.objectContaining({ fileName: "kk.pdf" }),
+        summary: "Dokumen kk.pdf dihapus.",
+        type: "DOCUMENT_DELETED",
+      }),
+    );
     expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard/dokumen");
     expect(response.status).toBe(200);
   });

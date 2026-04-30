@@ -1,11 +1,16 @@
 import { render, screen } from "@testing-library/react";
 
-const { findUniqueMock, createSignedDownloadUrlMock, notFoundMock } =
-  vi.hoisted(() => ({
-    findUniqueMock: vi.fn(),
-    createSignedDownloadUrlMock: vi.fn(),
-    notFoundMock: vi.fn(),
-  }));
+const {
+  findUniqueMock,
+  createSignedDownloadUrlMock,
+  getHouseholdTimelineMock,
+  notFoundMock,
+} = vi.hoisted(() => ({
+  findUniqueMock: vi.fn(),
+  createSignedDownloadUrlMock: vi.fn(),
+  getHouseholdTimelineMock: vi.fn(),
+  notFoundMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
   notFound: () => {
@@ -19,10 +24,11 @@ vi.mock("next/link", () => ({
     href,
     children,
     ...props
-  }: React.AnchorHTMLAttributes<HTMLAnchorElement>) =>
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a href={String(href)} {...props}>
       {children}
-    </a>,
+    </a>
+  ),
 }));
 
 vi.mock("~/app/dashboard/_components/document-uploader", () => ({
@@ -59,11 +65,17 @@ vi.mock("~/server/storage", () => ({
   createSignedDownloadUrl: createSignedDownloadUrlMock,
 }));
 
+vi.mock("~/server/audit", () => ({
+  getHouseholdTimeline: getHouseholdTimelineMock,
+}));
+
 describe("HouseholdDetailPage", () => {
   beforeEach(() => {
     findUniqueMock.mockReset();
     createSignedDownloadUrlMock.mockReset();
+    getHouseholdTimelineMock.mockReset();
     notFoundMock.mockReset();
+    getHouseholdTimelineMock.mockResolvedValue([]);
   });
 
   it("renders new empty states for residents and household documents", async () => {
@@ -90,11 +102,17 @@ describe("HouseholdDetailPage", () => {
       .default;
 
     render(
-      await HouseholdDetailPage({ params: Promise.resolve({ id: "household-1" }) }),
+      await HouseholdDetailPage({
+        params: Promise.resolve({ id: "household-1" }),
+      }),
     );
 
-    expect(screen.getByText(/belum ada anggota tercatat\./i)).toBeInTheDocument();
-    expect(screen.getByText(/belum ada berkas terunggah\./i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/belum ada anggota tercatat\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/belum ada berkas terunggah\./i),
+    ).toBeInTheDocument();
   });
 
   it("hides household open links when signed urls cannot be created", async () => {
@@ -147,11 +165,15 @@ describe("HouseholdDetailPage", () => {
       .default;
 
     render(
-      await HouseholdDetailPage({ params: Promise.resolve({ id: "household-1" }) }),
+      await HouseholdDetailPage({
+        params: Promise.resolve({ id: "household-1" }),
+      }),
     );
 
     expect(screen.queryByRole("link", { name: /buka dokumen/i })).toBeNull();
-    expect(screen.getByRole("button", { name: /hapus kk.pdf/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /hapus kk.pdf/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders the reusable household file row when a signed url exists", async () => {
@@ -204,13 +226,17 @@ describe("HouseholdDetailPage", () => {
       .default;
 
     render(
-      await HouseholdDetailPage({ params: Promise.resolve({ id: "household-1" }) }),
+      await HouseholdDetailPage({
+        params: Promise.resolve({ id: "household-1" }),
+      }),
     );
 
     expect(screen.getByText(/2.00 KB - application\/pdf/i)).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /buka dokumen kk.pdf/i }),
     ).toHaveAttribute("href", "https://example.com/kk.pdf");
-    expect(screen.getByRole("button", { name: /hapus kk.pdf/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /hapus kk.pdf/i }),
+    ).toBeInTheDocument();
   });
 });

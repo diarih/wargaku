@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { auth } from "~/server/auth";
+import { recordAuditEvent } from "~/server/audit";
 import { db } from "~/server/db";
 import {
   normalizeOptional,
@@ -14,7 +15,11 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-async function patchResident(request: Request, context: RouteContext) {
+async function patchResident(
+  request: Request,
+  context: RouteContext,
+  actor?: { id?: string; name?: string | null },
+) {
   try {
     const { id } = await context.params;
     const payload = parseResidentPayload(await request.json());
@@ -62,6 +67,18 @@ async function patchResident(request: Request, context: RouteContext) {
       return updated;
     });
 
+    await recordAuditEvent({
+      type: "RESIDENT_UPDATED",
+      entityType: "RESIDENT",
+      entityId: id,
+      householdId: resident.householdId,
+      residentId: id,
+      actorId: actor?.id ?? null,
+      actorName: actor?.name,
+      summary: `Warga ${payload.namaLengkap} diperbarui.`,
+      metadata: { fallbackKey: `resident:${id}:updated` },
+    });
+
     return NextResponse.json({
       redirectTo: `/dashboard/kk/${resident.householdId}`,
     });
@@ -88,16 +105,22 @@ async function patchResident(request: Request, context: RouteContext) {
 }
 
 async function patchResidentAuthed(
-  request: Request & { auth?: { user?: { id?: string } } | null },
+  request: Request & {
+    auth?: { user?: { id?: string; name?: string | null } } | null;
+  },
   context: { params?: Record<string, string | string[]> },
 ) {
   if (!request.auth?.user?.id) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  return patchResident(request, {
-    params: Promise.resolve({ id: String(context.params?.id ?? "") }),
-  });
+  return patchResident(
+    request,
+    {
+      params: Promise.resolve({ id: String(context.params?.id ?? "") }),
+    },
+    request.auth.user,
+  );
 }
 
 export const PATCH = auth(

@@ -2,10 +2,15 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { auth } from "~/server/auth";
+import { recordAuditEvent } from "~/server/audit";
 import { db } from "~/server/db";
 import { parseHouseholdPayload, normalizeOptional } from "~/server/households";
 
-async function postHousehold(request: Request, userId: string) {
+async function postHousehold(
+  request: Request,
+  userId: string,
+  actorName?: string | null,
+) {
   try {
     const payload = parseHouseholdPayload(await request.json());
     const household = await db.household.create({
@@ -26,6 +31,17 @@ async function postHousehold(request: Request, userId: string) {
         createdById: userId,
       },
       select: { id: true },
+    });
+
+    await recordAuditEvent({
+      type: "HOUSEHOLD_CREATED",
+      entityType: "HOUSEHOLD",
+      entityId: household.id,
+      householdId: household.id,
+      actorId: userId,
+      actorName,
+      summary: `KK ${payload.noKk} dibuat.`,
+      metadata: { fallbackKey: `household:${household.id}:created` },
     });
 
     return NextResponse.json({
@@ -55,7 +71,9 @@ async function postHousehold(request: Request, userId: string) {
 }
 
 async function postHouseholdAuthed(
-  request: Request & { auth?: { user?: { id?: string } } | null },
+  request: Request & {
+    auth?: { user?: { id?: string; name?: string | null } } | null;
+  },
 ) {
   const userId = request.auth?.user?.id;
 
@@ -63,7 +81,7 @@ async function postHouseholdAuthed(
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  return postHousehold(request, userId);
+  return postHousehold(request, userId, request.auth?.user?.name);
 }
 
 export const POST = auth(postHouseholdAuthed) as unknown as (

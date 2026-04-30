@@ -10,6 +10,7 @@ const authMock = vi.fn((arg?: unknown) => {
   return Promise.resolve(sessionMock);
 });
 const createMock = vi.fn();
+const recordAuditEventMock = vi.fn();
 
 vi.mock("~/server/auth", () => ({
   auth: authMock,
@@ -23,11 +24,16 @@ vi.mock("~/server/db", () => ({
   },
 }));
 
+vi.mock("~/server/audit", () => ({
+  recordAuditEvent: recordAuditEventMock,
+}));
+
 describe("POST /api/households", () => {
   beforeEach(() => {
     sessionMock = null;
     authMock.mockClear();
     createMock.mockReset();
+    recordAuditEventMock.mockReset();
   });
 
   it("returns 401 when the request is unauthenticated", async () => {
@@ -89,6 +95,16 @@ describe("POST /api/households", () => {
           noKk: "3201010101010101",
           createdById: "user-1",
         }),
+      }),
+    );
+    expect(recordAuditEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: "user-1",
+        entityId: "household-1",
+        entityType: "HOUSEHOLD",
+        householdId: "household-1",
+        summary: "KK 3201010101010101 dibuat.",
+        type: "HOUSEHOLD_CREATED",
       }),
     );
     expect(response.status).toBe(200);

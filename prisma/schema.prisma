@@ -152,3 +152,38 @@ model FileAsset {
     @@index([householdId])
     @@index([residentId])
 }
+
+enum AuditEventType {
+    HOUSEHOLD_CREATED
+    HOUSEHOLD_UPDATED
+    RESIDENT_CREATED
+    RESIDENT_UPDATED
+    DOCUMENT_UPLOADED
+    DOCUMENT_DELETED
+}
+
+enum AuditEntityType {
+    HOUSEHOLD
+    RESIDENT
+    DOCUMENT
+}
+
+model AuditEvent {
+    id          String          @id @default(cuid())
+    type        AuditEventType
+    entityType  AuditEntityType
+    entityId    String
+    householdId String?
+    residentId  String?
+    fileAssetId String?
+    actorId     String?
+    actorName   String?
+    summary     String
+    metadata    Json?
+    createdAt   DateTime        @default(now())
+
+    @@index([entityType, entityId])
+    @@index([householdId, createdAt])
+    @@index([residentId, createdAt])
+    @@index([fileAssetId])
+}

@@ -2,6 +2,7 @@ const authMock = vi.fn();
 const createMock = vi.fn();
 const uploadObjectMock = vi.fn();
 const revalidatePathMock = vi.fn();
+const recordAuditEventMock = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }));
 vi.mock("~/server/auth", () => ({ auth: authMock }));
@@ -9,6 +10,9 @@ vi.mock("~/server/db", () => ({ db: { fileAsset: { create: createMock } } }));
 vi.mock("~/server/storage", () => ({
   storageBucket: "wargaku-test",
   uploadObject: uploadObjectMock,
+}));
+vi.mock("~/server/audit", () => ({
+  recordAuditEvent: recordAuditEventMock,
 }));
 
 describe("POST /api/storage/upload", () => {
@@ -18,6 +22,7 @@ describe("POST /api/storage/upload", () => {
     createMock.mockReset();
     uploadObjectMock.mockReset();
     revalidatePathMock.mockReset();
+    recordAuditEventMock.mockReset();
   });
 
   function makeSizedFile(name: string, type: string, size: number) {
@@ -116,6 +121,17 @@ describe("POST /api/storage/upload", () => {
       "/dashboard/kk/household-1",
     );
     expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard/dokumen");
+    expect(recordAuditEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: "user-1",
+        entityId: "file-1",
+        entityType: "DOCUMENT",
+        fileAssetId: "file-1",
+        householdId: "household-1",
+        summary: "Dokumen kk.pdf diunggah.",
+        type: "DOCUMENT_UPLOADED",
+      }),
+    );
     expect(response.status).toBe(200);
   });
 

@@ -7,6 +7,7 @@ import { CompletenessBadge } from "~/app/dashboard/_components/completeness-badg
 import { DocumentUploader } from "~/app/dashboard/_components/document-uploader";
 import { FileDeleteButton } from "~/app/dashboard/_components/file-delete-button";
 import { InitialsAvatar } from "~/app/dashboard/_components/initials-avatar";
+import { AuditTimeline } from "~/components/dashboard/audit-timeline";
 import { EmptyStatePanel } from "~/components/dashboard/empty-state-panel";
 import { FileAssetRow } from "~/components/dashboard/file-asset-row";
 import { Badge } from "~/components/ui/badge";
@@ -19,6 +20,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { getInitialsAvatarUrl } from "~/lib/avatar";
+import { getHouseholdTimeline } from "~/server/audit";
 import { db } from "~/server/db";
 import {
   getHouseholdCompleteness,
@@ -54,18 +56,21 @@ export default async function HouseholdDetailPage({
 
   const completeness = getHouseholdCompleteness(household);
   const head = completeness.headOfFamily;
-  const filesWithUrl = await Promise.all(
-    household.files.map(async (file) => {
-      const downloadUrl = await createSignedDownloadUrl({
-        key: file.path,
-      }).catch(() => null);
+  const [filesWithUrl, timeline] = await Promise.all([
+    Promise.all(
+      household.files.map(async (file) => {
+        const downloadUrl = await createSignedDownloadUrl({
+          key: file.path,
+        }).catch(() => null);
 
-      return {
-        ...file,
-        downloadUrl,
-      };
-    }),
-  );
+        return {
+          ...file,
+          downloadUrl,
+        };
+      }),
+    ),
+    getHouseholdTimeline(household.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -343,6 +348,8 @@ export default async function HouseholdDetailPage({
               </div>
             </CardContent>
           </Card>
+
+          <AuditTimeline items={timeline} />
         </div>
       </section>
     </div>

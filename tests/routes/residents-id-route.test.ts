@@ -5,11 +5,15 @@ const transactionMock = vi.fn();
 const updateManyMock = vi.fn();
 const updateMock = vi.fn();
 const syncHeadMock = vi.fn();
+const recordAuditEventMock = vi.fn();
 
 vi.mock("~/server/auth", () => ({ auth: authMock }));
 vi.mock("~/server/db", () => ({ db: { $transaction: transactionMock } }));
 vi.mock("~/server/household-head", () => ({
   syncHouseholdHeadOfFamily: syncHeadMock,
+}));
+vi.mock("~/server/audit", () => ({
+  recordAuditEvent: recordAuditEventMock,
 }));
 
 describe("PATCH /api/residents/[id]", () => {
@@ -20,6 +24,7 @@ describe("PATCH /api/residents/[id]", () => {
     updateManyMock.mockReset();
     updateMock.mockReset();
     syncHeadMock.mockReset();
+    recordAuditEventMock.mockReset();
     transactionMock.mockImplementation(
       async (
         callback: (tx: {
@@ -74,6 +79,17 @@ describe("PATCH /api/residents/[id]", () => {
     expect(syncHeadMock).toHaveBeenCalledWith(
       expect.any(Object),
       "household-1",
+    );
+    expect(recordAuditEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: "user-1",
+        entityId: "resident-1",
+        entityType: "RESIDENT",
+        householdId: "household-1",
+        residentId: "resident-1",
+        summary: "Warga Budi Santoso diperbarui.",
+        type: "RESIDENT_UPDATED",
+      }),
     );
     await expect(response.json()).resolves.toEqual({
       redirectTo: "/dashboard/kk/household-1",

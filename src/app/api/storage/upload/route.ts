@@ -4,12 +4,17 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { auth } from "~/server/auth";
+import { recordAuditEvent } from "~/server/audit";
 import { db } from "~/server/db";
 import { storageBucket, uploadObject } from "~/server/storage";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-async function postUpload(request: Request, userId: string) {
+async function postUpload(
+  request: Request,
+  userId: string,
+  actorName?: string | null,
+) {
   const formData = await request.formData();
   const file = formData.get("file");
   const residentId = formData.get("residentId");
@@ -37,6 +42,14 @@ async function postUpload(request: Request, userId: string) {
       { status: 400 },
     );
   }
+
+  const residentHousehold = safeResidentId
+    ? await db.resident.findUnique({
+        where: { id: safeResidentId },
+        select: { householdId: true },
+      })
+    : null;
+  const auditHouseholdId = safeHouseholdId ?? residentHousehold?.householdId;
 
   const extension = file.name.split(".").pop() ?? "bin";
   const folder = safeResidentId
@@ -76,6 +89,22 @@ async function postUpload(request: Request, userId: string) {
     },
   });
 
+  await recordAuditEvent({
+    type: "DOCUMENT_UPLOADED",
+    entityType: "DOCUMENT",
+    entityId: asset.id,
+    householdId: auditHouseholdId,
+    residentId: safeResidentId,
+    fileAssetId: asset.id,
+    actorId: userId,
+    actorName,
+    summary: `Dokumen ${file.name} diunggah.`,
+    metadata: {
+      fileName: file.name,
+      fallbackKey: `file:${asset.id}:uploaded`,
+    },
+  });
+
   if (safeHouseholdId) {
     revalidatePath(`/dashboard/kk/${safeHouseholdId}`);
   }
@@ -91,7 +120,9 @@ async function postUpload(request: Request, userId: string) {
 }
 
 async function postUploadAuthed(
-  request: Request & { auth?: { user?: { id?: string } } | null },
+  request: Request & {
+    auth?: { user?: { id?: string; name?: string | null } } | null;
+  },
 ) {
   const userId = request.auth?.user?.id;
 
@@ -99,7 +130,7 @@ async function postUploadAuthed(
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  return postUpload(request, userId);
+  return postUpload(request, userId, request.auth?.user?.name);
 }
 
 export const POST = auth(postUploadAuthed) as unknown as (
