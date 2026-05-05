@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { getInitialsAvatarUrl } from "~/lib/avatar";
+import { getCompletenessAssistantCopy } from "~/server/ai/search";
 import { getHouseholdTimeline } from "~/server/audit";
 import { db } from "~/server/db";
 import {
@@ -56,7 +57,7 @@ export default async function HouseholdDetailPage({
 
   const completeness = getHouseholdCompleteness(household);
   const head = completeness.headOfFamily;
-  const [filesWithUrl, timeline] = await Promise.all([
+  const [filesWithUrl, timeline, assistantSummary] = await Promise.all([
     Promise.all(
       household.files.map(async (file) => {
         const downloadUrl = await createSignedDownloadUrl({
@@ -70,6 +71,11 @@ export default async function HouseholdDetailPage({
       }),
     ),
     getHouseholdTimeline(household.id),
+    getCompletenessAssistantCopy({
+      entityLabel: `Data KK ${household.noKk}`,
+      score: completeness.score,
+      missing: completeness.missing,
+    }),
   ]);
 
   return (
@@ -256,6 +262,11 @@ export default async function HouseholdDetailPage({
                   ))}
                 </div>
               )}
+
+              <div className="rounded-2xl border bg-background/60 px-4 py-3 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Ringkasan AI</p>
+                <p className="mt-1">{assistantSummary}</p>
+              </div>
 
               <Button
                 nativeButton={false}

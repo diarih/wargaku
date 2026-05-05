@@ -19,6 +19,9 @@ export const env = createEnv({
     R2_SECRET_ACCESS_KEY: z.string().min(1),
     R2_BUCKET: z.string().min(1),
     R2_REGION: z.string().min(1).default("auto"),
+    QWEN_API_KEY: z.string().min(1).optional(),
+    QWEN_BASE_URL: z.string().url().optional(),
+    QWEN_MODEL: z.string().min(1).optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -47,6 +50,9 @@ export const env = createEnv({
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
     R2_BUCKET: process.env.R2_BUCKET,
     R2_REGION: process.env.R2_REGION,
+    QWEN_API_KEY: process.env.QWEN_API_KEY,
+    QWEN_BASE_URL: process.env.QWEN_BASE_URL,
+    QWEN_MODEL: process.env.QWEN_MODEL,
     NODE_ENV: process.env.NODE_ENV,
   },
   /**

@@ -54,6 +54,7 @@ export type ResidentDetailViewProps = {
     downloadUrl: string | null;
   }>;
   timeline?: AuditTimelineItem[];
+  assistantSummary?: string;
 };
 
 const EMPTY_VALUE = "Belum diisi";
@@ -85,6 +86,7 @@ export function ResidentDetailView({
   completeness,
   files,
   timeline = [],
+  assistantSummary,
 }: ResidentDetailViewProps) {
   const missingCount = completeness.missing.length;
 
@@ -256,6 +258,13 @@ export function ResidentDetailView({
                   </ul>
                 </div>
               )}
+
+              {assistantSummary ? (
+                <div className="rounded-2xl border bg-background/60 px-4 py-3 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">Ringkasan AI</p>
+                  <p className="mt-1">{assistantSummary}</p>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 

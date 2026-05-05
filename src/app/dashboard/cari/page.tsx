@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileText, Search, UserRound, Users } from "lucide-react";
 
+import { AiSearchPanel } from "~/app/dashboard/_components/ai-search-panel";
 import { Badge } from "~/components/ui/badge";
 import {
   Card,
@@ -147,6 +148,8 @@ export default async function AdminSearchPage({
           Cari KK, warga, atau dokumen dari satu tempat tanpa pindah menu.
         </p>
       </section>
+
+      <AiSearchPanel />
 
       <Card>
         <CardHeader>

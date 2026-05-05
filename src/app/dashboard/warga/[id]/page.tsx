@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ResidentDetailView } from "~/app/dashboard/_components/resident-detail-view";
+import { getCompletenessAssistantCopy } from "~/server/ai/search";
 import { getResidentTimeline } from "~/server/audit";
 import { db } from "~/server/db";
 import { getResidentCompleteness } from "~/server/households";
@@ -39,7 +40,7 @@ export default async function ResidentDetailPage({
   }
 
   const completeness = getResidentCompleteness(resident);
-  const [filesWithUrl, timeline] = await Promise.all([
+  const [filesWithUrl, timeline, assistantSummary] = await Promise.all([
     Promise.all(
       resident.files.map(async (file) => ({
         ...file,
@@ -49,6 +50,11 @@ export default async function ResidentDetailPage({
       })),
     ),
     getResidentTimeline(resident.id),
+    getCompletenessAssistantCopy({
+      entityLabel: `Data warga ${resident.namaLengkap}`,
+      score: completeness.score,
+      missing: completeness.missing,
+    }),
   ]);
 
   return (
@@ -57,6 +63,7 @@ export default async function ResidentDetailPage({
       completeness={completeness}
       files={filesWithUrl}
       timeline={timeline}
+      assistantSummary={assistantSummary}
     />
   );
 }

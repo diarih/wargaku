@@ -4,11 +4,13 @@ const {
   findUniqueMock,
   createSignedDownloadUrlMock,
   getHouseholdTimelineMock,
+  getCompletenessAssistantCopyMock,
   notFoundMock,
 } = vi.hoisted(() => ({
   findUniqueMock: vi.fn(),
   createSignedDownloadUrlMock: vi.fn(),
   getHouseholdTimelineMock: vi.fn(),
+  getCompletenessAssistantCopyMock: vi.fn(),
   notFoundMock: vi.fn(),
 }));
 
@@ -69,13 +71,21 @@ vi.mock("~/server/audit", () => ({
   getHouseholdTimeline: getHouseholdTimelineMock,
 }));
 
+vi.mock("~/server/ai/search", () => ({
+  getCompletenessAssistantCopy: getCompletenessAssistantCopyMock,
+}));
+
 describe("HouseholdDetailPage", () => {
   beforeEach(() => {
     findUniqueMock.mockReset();
     createSignedDownloadUrlMock.mockReset();
     getHouseholdTimelineMock.mockReset();
+    getCompletenessAssistantCopyMock.mockReset();
     notFoundMock.mockReset();
     getHouseholdTimelineMock.mockResolvedValue([]);
+    getCompletenessAssistantCopyMock.mockResolvedValue(
+      "Ringkasan AI household test.",
+    );
   });
 
   it("renders new empty states for residents and household documents", async () => {

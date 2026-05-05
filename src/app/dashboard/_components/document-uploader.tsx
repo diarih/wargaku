@@ -70,7 +70,7 @@ export function DocumentUploader({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center flex-wrap">
         <label
           className={`bg-background flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
             isPending
